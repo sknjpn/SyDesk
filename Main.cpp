@@ -1,29 +1,19 @@
 ﻿#include "common.h"
+#include "Communicator.h"
 
 void Main()
 {
-	Serial serial;
+	Communicator communicator;
 
-	if (!serial.open(U"COM16", 115200)) return;
+	if (!communicator.connect(U"COM16")) return;
 
+	communicator.addCommand('D', 1000, 2000, 500, 4000);
+	communicator.addCommand('D', -1000, 2000, 500, 4000);
+	communicator.addCommand('D', 1000, 2000, -500, 4000);
+	communicator.addCommand('D', -1000, 2000, -500, 4000);
+
+	while (System::Update())
 	{
-		std::string sendBuffer;
-
-		short px = 1000;
-		short sx = 3000;
-		short py = 1000;
-		short sy = 3000;
-
-		sendBuffer.push_back('D');
-		sendBuffer.push_back(char(px >> 8));
-		sendBuffer.push_back(char(px));
-		sendBuffer.push_back(char(sx >> 8));
-		sendBuffer.push_back(char(sx));
-		sendBuffer.push_back(char(py >> 8));
-		sendBuffer.push_back(char(py));
-		sendBuffer.push_back(char(sy >> 8));
-		sendBuffer.push_back(char(sy));
-
-		serial.write(sendBuffer.c_str(),sendBuffer.size());
+		communicator.update();
 	}
 }
