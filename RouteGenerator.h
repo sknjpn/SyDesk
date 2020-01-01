@@ -8,5 +8,5 @@ class RouteGenerator
 	MultiPolygon	m_multiPolygon;
 
 public:
-	Array<Commmand>	getCommands() const;
+	Array<Command>	getCommands() const;
 };
