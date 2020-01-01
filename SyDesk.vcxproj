@@ -111,6 +111,7 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Communicator.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="RouteGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\engine\texture\box-shadow\128.png" />
@@ -238,6 +239,7 @@
     <ClInclude Include="Command.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="Communicator.h" />
+    <ClInclude Include="RouteGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
