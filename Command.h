@@ -9,5 +9,6 @@ class Command
 
 public:
 	
+	std::string asSendBuffer() const;
 };
 
