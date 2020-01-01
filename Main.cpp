@@ -17,7 +17,7 @@ void Main()
 	*/
 
 	routeGenerator.addPolygon(Shape2D::Star(50.0, Vec2(50, 50)));
-	routeGenerator.start();
+	communicator.addCommands(routeGenerator.getCommands());
 
 	while (System::Update())
 	{
