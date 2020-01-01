@@ -24,5 +24,8 @@ void Communicator::update()
 		const auto sendBuffer = m_commands.front().asSendBuffer();
 
 		m_serial.write(sendBuffer.c_str(), sendBuffer.size());
+
+		m_commands.pop_front();
+		m_canSend = false;
 	}
 }
