@@ -9,6 +9,8 @@ void Communicator::update()
 		{
 			const char read = bytes.front();
 
+			Logger << Format(U"recv ", int(read));
+
 			if (read == 'G')
 			{
 				m_canSend = true;
@@ -21,6 +23,8 @@ void Communicator::update()
 	// 送信処理
 	if (m_canSend && !m_commands.isEmpty())
 	{
+		Logger << U"send";
+
 		const auto sendBuffer = m_commands.front().asSendBuffer();
 
 		m_serial.write(sendBuffer.c_str(), sendBuffer.size());
