@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include "common.h"
+
 class Command
 {
 	char	m_code;
