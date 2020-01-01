@@ -8,5 +8,5 @@ class Communicator
 	Serial	m_serial;
 
 public:
-
+	bool	connect(String portname) { return m_serial.open(portname, 115200); }
 };
