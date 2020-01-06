@@ -34,6 +34,13 @@ class MainViewer : public EasyViewer
 		void	update() override;
 	};
 
+	class OriginAdjustment : public EasyViewer
+	{
+	public:
+		void	init() override;
+		void	update() override;
+	};
+	
 	class SerialSelector : public EasyViewer
 	{
 	public:
