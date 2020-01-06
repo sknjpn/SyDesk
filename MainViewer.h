@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include "EasyViewer.h"
+#include "Communicator.h"
+#include "RouteGenerator.h"
 
 class MainViewer : public EasyViewer
 {
@@ -54,6 +56,9 @@ class MainViewer : public EasyViewer
 	};
 
 public:
+	Communicator	m_communicator;
+	RouteGenerator	m_routeGenerator;
+
 	void	init() override;
 	void	update() override;
 };
