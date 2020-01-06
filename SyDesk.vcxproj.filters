@@ -364,5 +364,6 @@
     <ClInclude Include="Command.h" />
     <ClInclude Include="Communicator.h" />
     <ClInclude Include="RouteGenerator.h" />
+    <ClInclude Include="EasyViewer.h" />
   </ItemGroup>
 </Project>
