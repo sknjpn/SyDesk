@@ -5,6 +5,8 @@
 
 void Main()
 {
+	Scene::SetScaleMode(ScaleMode::ResizeFill);
+
 	EasyViewer::GetRootViewer()->addChildViewer<MainViewer>();
 	EasyViewer::Run();
 

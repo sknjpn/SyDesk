@@ -88,8 +88,6 @@ public:
 	{
 		while (System::Update())
 		{
-			Scene::Resize(Window::ClientSize());
-
 			// ログ出力のクリア
 			ClearPrint();
 
