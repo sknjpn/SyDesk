@@ -86,6 +86,9 @@
     <Filter Include="Resource Files\example\font\LogoTypeGothic">
       <UniqueIdentifier>{b3586a98-5569-49e1-b9d6-cd80cf76ce9d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Viewer">
+      <UniqueIdentifier>{4d633a94-005e-4646-8331-7e0b99d7e787}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -358,6 +361,30 @@
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Communicator.cpp" />
     <ClCompile Include="RouteGenerator.cpp" />
+    <ClCompile Include="MainViewer.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_Workspace.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_SerialViewer.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_SerialSelector.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_ImageDialog.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_CutSetting.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_MachineViewer.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_Adviser.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -365,5 +392,8 @@
     <ClInclude Include="Communicator.h" />
     <ClInclude Include="RouteGenerator.h" />
     <ClInclude Include="EasyViewer.h" />
+    <ClInclude Include="MainViewer.h">
+      <Filter>Viewer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
