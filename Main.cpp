@@ -1,9 +1,15 @@
 ﻿#include "common.h"
+#include "MainViewer.h"
 #include "Communicator.h"
 #include "RouteGenerator.h"
 
 void Main()
 {
+	EasyViewer::GetRootViewer()->addChildViewer<MainViewer>();
+	EasyViewer::Run();
+
+	return;
+
 	Communicator communicator;
 	RouteGenerator routeGenerator;
 
