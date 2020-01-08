@@ -58,12 +58,38 @@ class MainViewer : public EasyViewer
 		void	init() override;
 		void	update() override;
 	};
-	
+
 	class SerialSelector : public EasyViewer
 	{
+		class SerialList : public EasyViewer
+		{
+			class Item : public EasyViewer
+			{
+				bool	m_isLatched;
+
+			public:
+				SerialPortInfo	m_serialPort;
+
+			public:
+				Item(const SerialPortInfo& serialPort)
+					: m_serialPort(serialPort)
+					, m_isLatched(false)
+				{}
+
+				void	init() override;
+				void	update() override;
+			};
+
+		public:
+			void	init() override;
+			void	update() override;
+		};
+
 	public:
 		void	init() override;
 		void	update() override;
+
+		void	connect(const String& port);
 	};
 
 	class SerialViewer : public EasyViewer

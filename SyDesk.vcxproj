@@ -110,6 +110,13 @@
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Communicator.cpp" />
+    <ClCompile Include="GUIButton.cpp" />
+    <ClCompile Include="GUIChecker.cpp" />
+    <ClCompile Include="GUIColorPicker.cpp" />
+    <ClCompile Include="GUISlider.cpp" />
+    <ClCompile Include="GUIText.cpp" />
+    <ClCompile Include="GUITextBox.cpp" />
+    <ClCompile Include="GUIValuer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainViewer.cpp" />
     <ClCompile Include="MainViewer_Adviser.cpp" />
@@ -118,6 +125,8 @@
     <ClCompile Include="MainViewer_MachineViewer.cpp" />
     <ClCompile Include="MainViewer_OriginAdjustment.cpp" />
     <ClCompile Include="MainViewer_SerialSelector.cpp" />
+    <ClCompile Include="MainViewer_SerialSelector_SerialList.cpp" />
+    <ClCompile Include="MainViewer_SerialSelector_SerialList_Item.cpp" />
     <ClCompile Include="MainViewer_SerialViewer.cpp" />
     <ClCompile Include="MainViewer_Workspace.cpp" />
     <ClCompile Include="RouteGenerator.cpp" />
@@ -249,6 +258,13 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="Communicator.h" />
     <ClInclude Include="EasyViewer.h" />
+    <ClInclude Include="GUIButton.h" />
+    <ClInclude Include="GUIChecker.h" />
+    <ClInclude Include="GUIColorPicker.h" />
+    <ClInclude Include="GUISlider.h" />
+    <ClInclude Include="GUIText.h" />
+    <ClInclude Include="GUITextBox.h" />
+    <ClInclude Include="GUIValuer.h" />
     <ClInclude Include="MainViewer.h" />
     <ClInclude Include="RouteGenerator.h" />
   </ItemGroup>

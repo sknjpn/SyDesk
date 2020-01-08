@@ -89,6 +89,9 @@
     <Filter Include="Viewer">
       <UniqueIdentifier>{4d633a94-005e-4646-8331-7e0b99d7e787}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI">
+      <UniqueIdentifier>{a98887fb-e954-4d8c-a48c-8e15d345d51f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -388,6 +391,33 @@
     <ClCompile Include="MainViewer_OriginAdjustment.cpp">
       <Filter>Viewer</Filter>
     </ClCompile>
+    <ClCompile Include="MainViewer_SerialSelector_SerialList.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="MainViewer_SerialSelector_SerialList_Item.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIButton.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIChecker.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIColorPicker.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUISlider.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIText.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUITextBox.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIValuer.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -397,6 +427,27 @@
     <ClInclude Include="EasyViewer.h" />
     <ClInclude Include="MainViewer.h">
       <Filter>Viewer</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIButton.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIChecker.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIColorPicker.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUISlider.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIText.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUITextBox.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIValuer.h">
+      <Filter>GUI</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
