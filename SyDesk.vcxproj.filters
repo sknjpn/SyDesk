@@ -385,6 +385,9 @@
     <ClCompile Include="MainViewer_Adviser.cpp">
       <Filter>Viewer</Filter>
     </ClCompile>
+    <ClCompile Include="MainViewer_OriginAdjustment.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />

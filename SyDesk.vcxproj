@@ -116,6 +116,7 @@
     <ClCompile Include="MainViewer_CutSetting.cpp" />
     <ClCompile Include="MainViewer_ImageDialog.cpp" />
     <ClCompile Include="MainViewer_MachineViewer.cpp" />
+    <ClCompile Include="MainViewer_OriginAdjustment.cpp" />
     <ClCompile Include="MainViewer_SerialSelector.cpp" />
     <ClCompile Include="MainViewer_SerialViewer.cpp" />
     <ClCompile Include="MainViewer_Workspace.cpp" />

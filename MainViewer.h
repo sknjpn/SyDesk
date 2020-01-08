@@ -36,6 +36,24 @@ class MainViewer : public EasyViewer
 
 	class OriginAdjustment : public EasyViewer
 	{
+		enum class StateRL
+		{
+			None,
+			MoveToRight,
+			MoveToLeft,
+		};
+		StateRL m_stateNowRL = StateRL::None;
+		StateRL m_statePreRL = StateRL::None;
+
+		enum class StateTD
+		{
+			None,
+			MoveToTop,
+			MoveToDown,
+		};
+		StateTD m_stateNowTD = StateTD::None;
+		StateTD m_statePreTD = StateTD::None;
+
 	public:
 		void	init() override;
 		void	update() override;

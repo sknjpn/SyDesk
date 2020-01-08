@@ -11,7 +11,7 @@ void Communicator::update()
 
 			Logger << Format(U"recv ", int(read));
 
-			if (read == 'G')
+			//if (read == 'G')
 			{
 				m_canSend = true;
 			}

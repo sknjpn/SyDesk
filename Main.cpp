@@ -6,16 +6,19 @@
 void Main()
 {
 	Scene::SetScaleMode(ScaleMode::ResizeFill);
-
 	EasyViewer::GetRootViewer()->addChildViewer<MainViewer>();
 	EasyViewer::Run();
 
 	return;
-
 	Communicator communicator;
 	RouteGenerator routeGenerator;
 
-	if (!communicator.connect(U"COM16")) return;
+	if (!communicator.connect(U"COM4"))
+	{
+		Logger << U"not connected";
+
+		return;
+	}
 
 	{
 		short preState = 0b10000;
@@ -40,13 +43,13 @@ void Main()
 		}
 	}
 
-	/*communicator.addCommand('D', 1000, 2000, 500, 4000);
+	communicator.addCommand('D', 1000, 2000, 500, 4000);
 	communicator.addCommand('D', -1000, 2000, 500, 4000);
-	communicator.addCommand('D', -1000, 2000, -500, 4000);
 	communicator.addCommand('D', 1000, 2000, -500, 4000);
-	*/
+	communicator.addCommand('D', -1000, 2000, -500, 4000);
+	
 
-	routeGenerator.addPolygon(Shape2D::Star(50.0, Vec2(50, 50)));
+	routeGenerator.addPolygon(Shape2D::Star(100.0, Vec2(100, 100)));
 	communicator.addCommands(routeGenerator.getCommands());
 
 	while (System::Update())
