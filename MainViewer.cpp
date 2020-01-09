@@ -7,12 +7,14 @@
 
 void MainViewer::init()
 {
-	/*addChildViewer<Workspace>();
+	addChildViewer<Workspace>();
 	addChildViewer<CutSetting>();
 	addChildViewer<SerialViewer>();
 
 	// 最初のみ
-	addChildViewer<SerialSelector>();*/
+	addChildViewer<SerialSelector>();
+
+	setBackgroundColor(Palette::Gray);
 }
 
 void MainViewer::update()

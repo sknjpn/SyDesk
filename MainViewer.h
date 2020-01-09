@@ -65,15 +65,21 @@ class MainViewer : public EasyViewer
 		{
 			class Item : public EasyViewer
 			{
-				bool	m_isLatched;
-
 			public:
+				enum class State
+				{
+					None,
+					ReConnected,
+					DisConnected,
+					LastConnected,
+				} m_state;
+
 				SerialPortInfo	m_serialPort;
 
 			public:
-				Item(const SerialPortInfo& serialPort)
+				Item(const SerialPortInfo& serialPort, State state = State::None)
 					: m_serialPort(serialPort)
-					, m_isLatched(false)
+					, m_state(state)
 				{}
 
 				void	init() override;

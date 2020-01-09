@@ -5,10 +5,10 @@ const int itemHeight = 40;
 
 void MainViewer::SerialSelector::SerialList::init()
 {
-	setViewerRectInLocal(0, 32, 640, 400);
+	setViewerRectInLocal(10, 60, 620, 340);
 
 	addChildViewer<GUISlider>(0)
-		->setViewerRectInLocal(600, 0, 40, 400);
+		->setViewerRectInLocal(590, 0, 30, 400);
 }
 
 void MainViewer::SerialSelector::SerialList::update()
