@@ -17,5 +17,4 @@ void MainViewer::init()
 
 void MainViewer::update()
 {
-	m_routeGenerator.addPolygon
 }

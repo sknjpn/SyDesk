@@ -4,9 +4,6 @@ void RouteGenerator::updateRoute()
 {
 	m_route.clear();
 
-	MultiPolygon m_cuttingMultiPolygons;
-	MultiPolygon m_circlingMultiPolygons;
-
 	for (const auto& polygon : m_multiPolygon)
 	{
 		m_cuttingMultiPolygons.emplace_back(polygon.calculateRoundBuffer(m_cuttingMargin));
