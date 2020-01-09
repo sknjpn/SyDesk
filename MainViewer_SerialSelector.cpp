@@ -25,10 +25,7 @@ void MainViewer::SerialSelector::connect(const String& port)
 {
 	getParentViewer<MainViewer>()->m_communicator.connect(port);
 
-	getParentViewer<MainViewer>()->m_communicator.addCommand('D', 1000, 2000, 500, 4000);
-	getParentViewer<MainViewer>()->m_communicator.addCommand('D', 0, 2000, 500, 4000);
-	getParentViewer<MainViewer>()->m_communicator.addCommand('D', -1000, 2000, -500, 4000);
-	getParentViewer<MainViewer>()->m_communicator.addCommand('D', 0, 2000, -500, 4000);
+	getParentViewer<MainViewer>()->addChildViewer<OriginAdjustment>();
 
 	destroy();
 }

@@ -36,23 +36,29 @@ class MainViewer : public EasyViewer
 
 	class OriginAdjustment : public EasyViewer
 	{
+		Texture	m_textureD = Texture(Icon(0xf13a, 80));
+		Texture	m_textureU = Texture(Icon(0xf139, 80));
+		Texture	m_textureR = Texture(Icon(0xf138, 80));
+		Texture	m_textureL = Texture(Icon(0xf137, 80));
+		Texture	m_explain = Texture(U"assets/img.png");
+
 		enum class StateRL
 		{
 			None,
-			MoveToRight,
-			MoveToLeft,
+			MoveToR,
+			MoveToL,
 		};
 		StateRL m_stateNowRL = StateRL::None;
 		StateRL m_statePreRL = StateRL::None;
 
-		enum class StateTD
+		enum class StateUD
 		{
 			None,
-			MoveToTop,
-			MoveToDown,
+			MoveToU,
+			MoveToD,
 		};
-		StateTD m_stateNowTD = StateTD::None;
-		StateTD m_statePreTD = StateTD::None;
+		StateUD m_stateNowUD = StateUD::None;
+		StateUD m_statePreUD = StateUD::None;
 
 	public:
 		void	init() override;
