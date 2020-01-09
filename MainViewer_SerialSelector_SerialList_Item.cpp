@@ -6,7 +6,7 @@ void MainViewer::SerialSelector::SerialList::Item::init()
 {
 	setViewerSize(580, 32);
 
-	addChildViewer<GUIButton>(U"接続", [this]() {getParentViewer()->getParentViewer<SerialSelector>()->connect(m_serialPort.port); }, true)
+	addChildViewer<GUIButton>(U"接続", [this]() { getParentViewer()->getParentViewer<SerialSelector>()->connect(m_serialPort.port); }, true)
 		->setViewerRectInLocal(500 + 2, 0 + 2, 80 - 4, 32 - 4);
 
 	addChildViewer<GUIText>(m_serialPort.port, Font(24, Typeface::Black), GUIText::Mode::DrawLeftCenter)
