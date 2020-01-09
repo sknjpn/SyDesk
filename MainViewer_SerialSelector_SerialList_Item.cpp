@@ -12,7 +12,7 @@ void MainViewer::SerialSelector::SerialList::Item::init()
 void MainViewer::SerialSelector::SerialList::Item::update()
 {
 	// 接続可能かどうか
-	const bool canConnect = System::EnumerateSerialPorts().count(m_serialPort) == 1;
+	const bool canConnect = System::EnumerateSerialPorts().any([this](const auto& serialPortInfo) { return m_serialPort.port == serialPortInfo.port; });
 
 	getChildViewer<GUIButton>()->setIsEnabled(canConnect);
 	if (!canConnect) m_isLatched = true;

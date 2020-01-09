@@ -51,10 +51,10 @@ void RouteGenerator::update()
 	}
 
 	for (auto& polygon : m_cuttingMultiPolygons)
-		polygon.simplified(m_cuttingInterval);
+		polygon = polygon.simplified(m_cuttingInterval);
 
 	for (auto& polygon : m_circlingMultiPolygons)
-		polygon.simplified(m_circlingInterval);
+		polygon = polygon.simplified(m_circlingInterval);
 
 	updateValid();
 
