@@ -2,6 +2,8 @@
 
 void Communicator::update()
 {
+	if (!m_serial.isOpened()) return;
+
 	// 受信処理
 	{
 		auto bytes = m_serial.readBytes();
