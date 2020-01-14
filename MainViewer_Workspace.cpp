@@ -64,13 +64,15 @@ void MainViewer::Workspace::update()
 
 	RectF(routeGenerator.m_workspaceSize).drawFrame(2.0 / s, Palette::Darkkhaki);
 
+	for (int i = m_shapes.size() - 1; i >= 0; --i)
+		if (m_shapes[i].m_polygon.leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
+
 	for (auto& shape : m_shapes)
 	{
 		shape.m_polygon.draw(Palette::Green);
 		shape.m_circlingPolygon.boundingRect().drawFrame(1.0 / s, Palette::Blue);
 
 		if (MouseL.up()) shape.m_isGrabbed = false;
-		if (shape.m_polygon.leftClicked()) shape.m_isGrabbed = true;
 		if (shape.m_isGrabbed)
 		{
 			shape.m_circlingPolygon.moveBy(Cursor::DeltaF());
