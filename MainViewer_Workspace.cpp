@@ -65,21 +65,21 @@ void MainViewer::Workspace::update()
 	RectF(routeGenerator.m_workspaceSize).drawFrame(2.0 / s, Palette::Darkkhaki);
 
 	for (int i = m_shapes.size() - 1; i >= 0; --i)
-		if (m_shapes[i].m_polygon.leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
+		if (m_shapes[i].m_polygon.boundingRect().stretched(routeGenerator.m_circlingMargin + routeGenerator.m_cuttingMargin).leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
 
 	for (auto& shape : m_shapes)
 	{
 		shape.m_polygon.draw(Palette::Green);
-		shape.m_circlingPolygon.boundingRect().drawFrame(1.0 / s, Palette::Blue);
+		shape.m_polygon.boundingRect().stretched(routeGenerator.m_circlingMargin + routeGenerator.m_cuttingMargin)
+			.draw(ColorF(Palette::Blue, 0.1))
+			.drawFrame(1.0 / s, Palette::Blue);
 
 		if (MouseL.up()) shape.m_isGrabbed = false;
 		if (shape.m_isGrabbed)
 		{
-			shape.m_circlingPolygon.moveBy(Cursor::DeltaF());
-			shape.m_cuttingPolygon.moveBy(Cursor::DeltaF());
-			shape.m_polygon.moveBy(Cursor::DeltaF());
-
 			m_needToUpdate = true;
+
+			shape.m_polygon.moveBy(Cursor::DeltaF());
 		}
 	}
 
@@ -98,7 +98,7 @@ void MainViewer::Workspace::update()
 		{
 			const auto& outer = shape.m_cuttingPolygon.outer();
 			for (int i = 0; i < outer.size() - 1; ++i)
-				Line(outer[i], outer[i + 1]).draw(2.0 / s, Palette::Red);
+				Line(outer[i], outer[i + 1]).draw(2.0 / s, ColorF(Palette::Red, 0.25));
 		}
 
 		/*for (const auto& node1 : routeGenerator.m_nodes)

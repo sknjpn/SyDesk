@@ -11,6 +11,10 @@ class RouteGenerator
 	bool			m_isValid;
 
 public:
+	bool m_isInUpdate = false;
+	bool m_isNeedUpdate = true;
+	std::mutex m_mtx;
+
 	MultiPolygon	m_cuttingMultiPolygons;
 	MultiPolygon	m_circlingMultiPolygons;
 	Vec2			m_workspaceSize;
