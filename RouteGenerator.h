@@ -2,8 +2,11 @@
 
 #include "common.h"
 #include "Command.h"
+#include <mutex>
 
 class Node;
+
+extern std::mutex g_routeGeneratorMutex;
 
 class RouteGenerator
 {
@@ -13,7 +16,6 @@ class RouteGenerator
 public:
 	bool m_isInUpdate = false;
 	bool m_isNeedUpdate = true;
-	std::mutex m_mtx;
 
 	MultiPolygon	m_cuttingMultiPolygons;
 	MultiPolygon	m_circlingMultiPolygons;

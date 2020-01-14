@@ -28,8 +28,9 @@ void MainViewer::Workspace::updateShapes()
 
 void MainViewer::Workspace::addPolygon(const Polygon& polygon)
 {
-	m_shapes.emplace_back(polygon)
-		.update(getParentViewer<MainViewer>()->m_routeGenerator);
+	auto& shape = m_shapes.emplace_back();
+	shape.m_polygon = polygon;
+	shape.update(getParentViewer<MainViewer>()->m_routeGenerator);
 }
 
 void MainViewer::Workspace::onMarginChanged()

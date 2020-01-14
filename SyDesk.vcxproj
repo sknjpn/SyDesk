@@ -129,9 +129,9 @@
     <ClCompile Include="MainViewer_SerialSelector_SerialList_Item.cpp" />
     <ClCompile Include="MainViewer_SerialViewer.cpp" />
     <ClCompile Include="MainViewer_Workspace.cpp" />
-    <ClCompile Include="MainViewer_Workspace_Shape.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="RouteGenerator.cpp" />
+    <ClCompile Include="Shape.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\engine\texture\box-shadow\128.png" />
@@ -270,6 +270,7 @@
     <ClInclude Include="MainViewer.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="RouteGenerator.h" />
+    <ClInclude Include="Shape.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,8 @@
 ﻿#include "RouteGenerator.h"
 #include "Node.h"
 
+std::mutex g_routeGeneratorMutex;
+
 void RouteGenerator::update()
 {
 	m_nodes.clear();

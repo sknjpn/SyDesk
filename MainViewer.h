@@ -3,6 +3,7 @@
 # define SIV3D_CONCURRENT
 # include <Siv3D.hpp> // OpenSiv3D v0.4.2
 
+#include "Shape.h"
 #include "EasyViewer.h"
 #include "Communicator.h"
 #include "RouteGenerator.h"
@@ -131,20 +132,6 @@ class MainViewer : public EasyViewer
 
 	class Workspace : public EasyViewer
 	{
-		class Shape
-		{
-		public:
-			bool m_isGrabbed = false;
-			Polygon	m_polygon;
-			Polygon	m_cuttingPolygon;
-			Polygon m_circlingPolygon;
-
-		public:
-			Shape(const Polygon& polygon);
-
-			void update(const RouteGenerator& routeGenerator);
-		};
-
 		ConcurrentTask<void> m_updater;
 		Array<Shape> m_shapes;
 		bool	m_needToUpdate = true;
