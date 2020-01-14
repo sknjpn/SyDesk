@@ -41,7 +41,6 @@ class MainViewer : public EasyViewer
 
 		void	onLoad();
 
-		Polygon	getPolygon() const;
 		void	init() override;
 		void	update() override;
 	};
