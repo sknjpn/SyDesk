@@ -129,6 +129,8 @@
     <ClCompile Include="MainViewer_SerialSelector_SerialList_Item.cpp" />
     <ClCompile Include="MainViewer_SerialViewer.cpp" />
     <ClCompile Include="MainViewer_Workspace.cpp" />
+    <ClCompile Include="MainViewer_Workspace_Shape.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="RouteGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -266,6 +268,7 @@
     <ClInclude Include="GUITextBox.h" />
     <ClInclude Include="GUIValuer.h" />
     <ClInclude Include="MainViewer.h" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="RouteGenerator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

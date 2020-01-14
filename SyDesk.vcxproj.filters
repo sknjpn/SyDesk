@@ -418,6 +418,10 @@
     <ClCompile Include="GUIValuer.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="MainViewer_Workspace_Shape.cpp">
+      <Filter>Viewer</Filter>
+    </ClCompile>
+    <ClCompile Include="Node.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
@@ -449,5 +453,6 @@
     <ClInclude Include="GUIValuer.h">
       <Filter>GUI</Filter>
     </ClInclude>
+    <ClInclude Include="Node.h" />
   </ItemGroup>
 </Project>

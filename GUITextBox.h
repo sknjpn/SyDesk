@@ -5,6 +5,7 @@
 class GUITextBox :
 	public EasyViewer
 {
+public:
 	TextEditState	m_textEditState;
 	std::function<void(const String&)>	m_functionOnChanged;
 

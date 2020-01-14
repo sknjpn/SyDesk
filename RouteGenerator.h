@@ -3,26 +3,27 @@
 #include "common.h"
 #include "Command.h"
 
+class Node;
+
 class RouteGenerator
 {
-	// temp
+	Array<Vec2>		m_route;
+	bool			m_isValid;
+
+public:
 	MultiPolygon	m_cuttingMultiPolygons;
 	MultiPolygon	m_circlingMultiPolygons;
-
-	MultiPolygon	m_multiPolygon;
-	Array<Vec2>		m_route;
 	Vec2			m_workspaceSize;
-	bool			m_isValid;
 
 	double	m_cuttingMargin;
 	double	m_cuttingInterval;
 	double	m_circlingMargin;
 	double	m_circlingInterval;
 
-	void	updateRoute();
-	void	updateValid();
+	double	m_cuttingSpeed;
+	double	m_wireTemperature;
 
-	void	update();
+	Array<std::shared_ptr<Node>> m_nodes;
 
 public:
 	RouteGenerator()
@@ -30,9 +31,13 @@ public:
 		, m_circlingMargin(0.0)
 		, m_cuttingInterval(0.5)
 		, m_circlingInterval(m_circlingMargin)
+		, m_cuttingSpeed(1500)
+		, m_wireTemperature(25)
 		, m_workspaceSize(182 - 10, 128 - 10)
 		, m_isValid(true)
 	{}
+
+	void	update();
 
 	Array<Command>	getCommands() const;
 
@@ -43,7 +48,12 @@ public:
 	void	setCirclingMargin(const double margin) { m_circlingMargin = margin; m_circlingInterval = m_circlingMargin; update(); }
 	//void	setCuttingInterval(const double interval) { m_cuttingInterval = interval; update(); }
 	//void	setCirclingInterval(const double interval) { m_circlingInterval = interval; update(); }
-	void	addPolygon(const Polygon& polygon) { m_multiPolygon.emplace_back(polygon); update(); }
+
+	void	buildCostMap(const std::shared_ptr<Node>& start);
+	Array<Vec2> getRoute(const std::shared_ptr<Node>& start, const std::shared_ptr<Node>& end) const;
 
 	const Array<Vec2>& getRoute() const { return m_route; }
+
+	const MultiPolygon& getCuttingMultiPolygons() const { return m_cuttingMultiPolygons; }
+	const MultiPolygon& getCirclingMultiPolygons() const { return m_circlingMultiPolygons; }
 };

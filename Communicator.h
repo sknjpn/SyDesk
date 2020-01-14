@@ -9,7 +9,7 @@ class Communicator
 	bool	m_canSend = true;
 
 public:
-	bool	connect(String portname) { return m_serial.open(portname, 115200); }
+	bool	connect(String portname);
 
 	void	addCommands(const Array<Command>& commands) { m_commands.append(commands); }
 	void	addCommand(const Command& command) { m_commands.emplace_back(command); }

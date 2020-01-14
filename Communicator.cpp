@@ -1,8 +1,21 @@
 ﻿#include "Communicator.h"
 
+bool Communicator::connect(String portname)
+{
+	if (m_serial.open(portname, 115200))
+	{
+		std::string text = "!!!!!!!!!!";
+		m_serial.write(text.c_str(), text.size());
+
+		return true;
+	}
+
+	return false;
+}
+
 void Communicator::update()
 {
-	if (!m_serial.isOpened()) return;
+	// TODO 切断された場合の処理
 
 	// 受信処理
 	{
@@ -11,7 +24,7 @@ void Communicator::update()
 		{
 			const char read = bytes.front();
 
-			Logger << Format(U"recv ", int(read));
+			//Logger << Format(U"recv ", int(read));
 
 			//if (read == 'G')
 			{
@@ -25,7 +38,7 @@ void Communicator::update()
 	// 送信処理
 	if (m_canSend && !m_commands.isEmpty())
 	{
-		Logger << U"send";
+		//Logger << U"send";
 
 		const auto sendBuffer = m_commands.front().asSendBuffer();
 

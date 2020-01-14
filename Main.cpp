@@ -6,54 +6,9 @@
 void Main()
 {
 	Scene::SetScaleMode(ScaleMode::ResizeFill);
+	Window::SetStyle(WindowStyle::Sizable);
+	Window::Resize(1280, 720);
+
 	EasyViewer::GetRootViewer()->addChildViewer<MainViewer>();
 	EasyViewer::Run();
-
-	return;
-	Communicator communicator;
-	RouteGenerator routeGenerator;
-
-	if (!communicator.connect(U"COM4"))
-	{
-		Logger << U"not connected";
-
-		return;
-	}
-
-	{
-		short preState = 0b10000;
-		while (System::Update())
-		{
-			short nowState = 0b10000;
-			if (KeyLeft.pressed()) nowState += 0b0001;
-			if (KeyUp.pressed()) nowState += 0b0010;
-			if (KeyRight.pressed()) nowState += 0b0100;
-			if (KeyDown.pressed()) nowState += 0b1000;
-
-			if (preState != nowState)
-			{
-				communicator.addCommand('K', nowState, 0, 0, 0);
-
-				preState = nowState;
-			}
-
-			communicator.update();
-
-			if (KeyEnter.down()) break;
-		}
-	}
-
-	communicator.addCommand('D', 1000, 2000, 500, 4000);
-	communicator.addCommand('D', -1000, 2000, 500, 4000);
-	communicator.addCommand('D', 1000, 2000, -500, 4000);
-	communicator.addCommand('D', -1000, 2000, -500, 4000);
-	
-
-	routeGenerator.addPolygon(Shape2D::Star(100.0, Vec2(100, 100)));
-	communicator.addCommands(routeGenerator.getCommands());
-
-	while (System::Update())
-	{
-		communicator.update();
-	}
 }

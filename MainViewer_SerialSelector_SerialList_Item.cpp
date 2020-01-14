@@ -19,6 +19,8 @@ void MainViewer::SerialSelector::SerialList::Item::init()
 
 void MainViewer::SerialSelector::SerialList::Item::update()
 {
+	RectF(getViewerSize()).draw(ColorF(0.7)).drawFrame(2.0, 0.0, Palette::Black);
+
 	// set State
 	{
 		const bool canConnect = System::EnumerateSerialPorts().any([this](const auto& serialPortInfo) { return m_serialPort.port == serialPortInfo.port; });

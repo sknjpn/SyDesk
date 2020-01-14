@@ -4,7 +4,6 @@
 void MainViewer::SerialSelector::init()
 {
 	setViewerSize(640, 480);
-	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 
 	addChildViewer<GUIText>(U"Tiny Fabricaの接続されているPortを選択してください", Font(24, Typeface::Bold), GUIText::Mode::DrawLeftCenter)
 		->setViewerRectInLocal(10, 10, 620, 40);
@@ -18,7 +17,9 @@ void MainViewer::SerialSelector::init()
 
 void MainViewer::SerialSelector::update()
 {
-	RectF(getViewerSize()).draw(Palette::White).drawFrame(2.0, 0.0, Palette::Black);
+	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
+
+	RectF(getViewerSize()).draw(ColorF(0.8)).drawFrame(2.0, 0.0, Palette::Black);
 }
 
 void MainViewer::SerialSelector::connect(const String& port)

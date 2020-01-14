@@ -5,9 +5,8 @@
 void MainViewer::OriginAdjustment::init()
 {
 	setViewerSize(640, 480);
-	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 
-	addChildViewer<GUIButton>(U"完了！")
+	addChildViewer<GUIButton>(U"完了", [this]() { destroy(); })
 		->setViewerRectInLocal(20, 240, 200, 40);
 
 	addChildViewer<GUIText>(U"Tiny Fabricaのワークテーブル(発泡スチロールを載せる台)を原点(カットを開始する点)に移動してください。\n全体をカットする場合、電熱線がワークテーブルの右上にあたるようにしてください\n左側のボタンを押すか、キーボードの矢印キーを押すことで動かすことができます。\n移動出来たら、「完了」ボタンをクリックするかEnterキーを押してください！\nこの操作は後からやり直すことが出来ます。", Font(12), GUIText::Mode::DrawInBox)
@@ -16,7 +15,9 @@ void MainViewer::OriginAdjustment::init()
 
 void MainViewer::OriginAdjustment::update()
 {
-	RectF(getViewerSize()).draw(Palette::White).drawFrame(2.0, 0.0, Palette::Black);
+	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
+
+	RectF(getViewerSize()).draw(ColorF(0.8)).drawFrame(2.0, 0.0, Palette::Black);
 
 	auto& communicator = getParentViewer<MainViewer>()->m_communicator;
 
@@ -58,21 +59,17 @@ void MainViewer::OriginAdjustment::update()
 			circleR.draw(Palette::Lightblue);
 			circleD.draw(Palette::Lightblue);
 			circleL.draw(Palette::Lightblue);
-			if (circleU.leftPressed()) m_stateNowUD = StateUD::MoveToU;
-			if (circleR.leftPressed()) m_stateNowRL = StateRL::MoveToR;
-			if (circleD.leftPressed()) m_stateNowUD = StateUD::MoveToD;
-			if (circleL.leftPressed()) m_stateNowRL = StateRL::MoveToL;
 			m_textureU.drawAt(circleU.center, m_stateNowUD == StateUD::MoveToU ? Palette::Orange : circleU.mouseOver() ? Palette::Gray : Palette::Black);
 			m_textureR.drawAt(circleR.center, m_stateNowRL == StateRL::MoveToR ? Palette::Orange : circleR.mouseOver() ? Palette::Gray : Palette::Black);
 			m_textureD.drawAt(circleD.center, m_stateNowUD == StateUD::MoveToD ? Palette::Orange : circleD.mouseOver() ? Palette::Gray : Palette::Black);
 			m_textureL.drawAt(circleL.center, m_stateNowRL == StateRL::MoveToL ? Palette::Orange : circleL.mouseOver() ? Palette::Gray : Palette::Black);
-		}
 
-		// 原点調整完了
-		{
-			//destroy();
-
-			//return;
+			m_stateNowRL = StateRL::None;
+			m_stateNowUD = StateUD::None;
+			if (circleU.leftPressed()) m_stateNowUD = StateUD::MoveToU;
+			if (circleR.leftPressed()) m_stateNowRL = StateRL::MoveToR;
+			if (circleD.leftPressed()) m_stateNowUD = StateUD::MoveToD;
+			if (circleL.leftPressed()) m_stateNowRL = StateRL::MoveToL;
 		}
 
 		// 接続遮断
@@ -89,25 +86,24 @@ void MainViewer::OriginAdjustment::update()
 	// キー入力による左右
 	{
 		if (KeyRight.pressed()) m_stateNowRL = StateRL::MoveToR;
-		else if (KeyLeft.pressed()) m_stateNowRL = StateRL::MoveToR;
-		else m_stateNowRL = StateRL::None;
+		else if (KeyLeft.pressed()) m_stateNowRL = StateRL::MoveToL;
 
 		if (KeyUp.pressed()) m_stateNowUD = StateUD::MoveToU;
 		else if (KeyDown.pressed()) m_stateNowUD = StateUD::MoveToD;
-		else m_stateNowUD = StateUD::None;
 	}
 
 	// Serialによる変更適用
 	if (m_stateNowRL != m_statePreRL || m_stateNowUD != m_statePreUD)
 	{
 		short param = 0b10000;
-		if (m_stateNowRL == StateRL::MoveToL) param += 0b0001;
+		if (m_stateNowRL == StateRL::MoveToL) param += 0b0100;
 		if (m_stateNowUD == StateUD::MoveToU) param += 0b0010;
-		if (m_stateNowRL == StateRL::MoveToR) param += 0b0100;
+		if (m_stateNowRL == StateRL::MoveToR) param += 0b0001;
 		if (m_stateNowUD == StateUD::MoveToD) param += 0b1000;
-		communicator.addCommand('K', param, 0, 0, 0);
+		communicator.addCommand('K', param, getParentViewer<MainViewer>()->m_routeGenerator.m_cuttingSpeed, 0, 0);
 
 		m_statePreRL = m_stateNowRL;
 		m_statePreUD = m_stateNowUD;
+
 	}
 }
