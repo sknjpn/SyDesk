@@ -8,12 +8,20 @@ void MainViewer::Workspace::updateShapes()
 	routeGenerator.m_cuttingMultiPolygons.clear();
 	routeGenerator.m_circlingMultiPolygons.clear();
 
+	Array<ConcurrentTask<void>> tasks;
+
+
 	for (auto& shape : m_shapes)
 	{
-		shape.update(routeGenerator);
-		routeGenerator.m_circlingMultiPolygons.emplace_back(shape.m_circlingPolygon);
-		routeGenerator.m_cuttingMultiPolygons.emplace_back(shape.m_cuttingPolygon);
+		tasks.emplace_back(CreateConcurrentTask([&shape, &routeGenerator]() {
+			shape.update(routeGenerator);
+			routeGenerator.m_circlingMultiPolygons.emplace_back(shape.m_circlingPolygon);
+			routeGenerator.m_cuttingMultiPolygons.emplace_back(shape.m_cuttingPolygon);
+			}));
 	}
+
+	for (const auto& task : tasks)
+		while (!task.is_done()) std::this_thread::sleep_for(std::chrono::microseconds(1));
 
 	routeGenerator.update();
 }
@@ -97,10 +105,10 @@ void MainViewer::Workspace::update()
 				Line(node1->m_position, node2->m_position).draw(0.5 / s, Palette::Skyblue);
 
 		}*/
-		
-		if(!routeGenerator.getRoute().isEmpty())
-		for (int i = 0; i < routeGenerator.getRoute().size() - 1; ++i)
-			Line(routeGenerator.getRoute()[i], routeGenerator.getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
+
+		if (!routeGenerator.getRoute().isEmpty())
+			for (int i = 0; i < routeGenerator.getRoute().size() - 1; ++i)
+				Line(routeGenerator.getRoute()[i], routeGenerator.getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
 
 		if (KeyEnter.down()) getParentViewer<MainViewer>()->m_communicator.addCommands(getParentViewer<MainViewer>()->m_routeGenerator.getCommands());
 	}
