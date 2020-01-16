@@ -391,14 +391,21 @@ MainViewer::ImageDialog::ImageDialog(const DroppedFilePath& droppedFilePath, con
 
 void MainViewer::ImageDialog::onLoad()
 {
-	const auto outers = getOutlines(m_image, [](const Color& color) { return color.grayscale() < 0.4; });
+	const auto outers = getOutlines(m_image, [](const Color& color) { return color == Palette::Blue; });// .grayscale() < 0.4;});
 
 	for (const auto& outer : outers)
 	{
-		const Polygon polygon(outer);
+		const Polygon polygon = Polygon(outer)
+			.scaled(25.4 / Parse<double>(getChildViewer<GUITextBox>()->m_textEditState.text))
+			.simplified(0.1);
 
-		getParentViewer<MainViewer>()->getChildViewer<Workspace>()->addPolygon(polygon.scaled(25.4 / Parse<double>(getChildViewer<GUITextBox>()->m_textEditState.text)));
+		getParentViewer<MainViewer>()->getChildViewer<Workspace>()->addPolygon(polygon);
 	}
+
+
+	INIData ini(U"config.ini");
+	ini.write<double>(U"ImageDialog", U"PPI", Parse<int>(getChildViewer<GUITextBox>()->m_textEditState.text));
+	ini.save(U"config.ini");
 
 	destroy();
 }
@@ -413,7 +420,8 @@ void MainViewer::ImageDialog::init()
 	addChildViewer<GUIButton>(U"閉じる", [this]() { destroy(); })
 		->setViewerRectInLocal(120, 420, 80, 30);
 
-	addChildViewer<GUITextBox>(U"350")
+	INIData ini(U"config.ini");
+	addChildViewer<GUITextBox>(Format(ini.get<int>(U"ImageDialog", U"PPI")))
 		->setViewerRectInLocal(320, 5, 90, 30);
 }
 

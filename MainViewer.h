@@ -19,6 +19,17 @@ class MainViewer : public EasyViewer
 
 	class CutSetting : public EasyViewer
 	{
+		void	onCuttingMarginChanged(double value);
+		void	onCirclingMarginChanged(double value);
+		void	onCuttingSpeedChanged(double value);
+		void	onWireTemperatureChanged(double value);
+
+	public:
+		double	m_cuttingMargin;
+		double	m_circlingMargin;
+		double	m_cuttingSpeed;
+		double	m_wireTemperature;
+
 	public:
 		void	init() override;
 		void	update() override;
@@ -128,6 +139,14 @@ class MainViewer : public EasyViewer
 	public:
 		void	init() override;
 		void	update() override;
+
+		void	onReconnect();
+		void	onOriginAdjust();
+		void	onStart();
+
+		bool	canReconnect();
+		bool	canOriginAdjust();
+		bool	canStart();
 	};
 
 	class Workspace : public EasyViewer
@@ -145,7 +164,7 @@ class MainViewer : public EasyViewer
 		void	onMarginChanged();
 		void	init() override;
 		void	update() override;
-		
+
 	};
 
 	Array<DroppedFilePath>	m_reservedItems;

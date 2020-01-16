@@ -1,28 +1,54 @@
 ﻿#include "RouteGenerator.h"
 #include "Node.h"
 
-std::mutex g_routeGeneratorMutex;
+std::mutex RouteGenerator::g_routeGeneratorMutex;
 
 void RouteGenerator::update()
 {
-	m_nodes.clear();
-	m_route.clear();
-	m_isValid = false;
+	// 初期化
+	{
+		std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
 
-	if (m_circlingMultiPolygons.isEmpty() || m_cuttingMultiPolygons.isEmpty()) return;
+		m_nodes.clear();
+		m_route.clear();
+		m_isValid = false;
+	}
+
+	// 一時領域確保
+	MultiPolygon	temp_cuttingPolygons;
+	MultiPolygon	temp_circlingPolygons;
+	Vec2			temp_workspaceSize;
+	Array<Vec2>		temp_route;
+	double	temp_cuttingMargin;
+	double	temp_circlingMargin;
+
+	// Copy
+	{
+		std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+
+		temp_cuttingPolygons = m_cuttingPolygons;
+		temp_circlingPolygons = m_circlingPolygons;
+		temp_cuttingMargin = m_cuttingMargin;
+		temp_circlingMargin = m_circlingMargin;
+		temp_workspaceSize = m_workspaceSize;
+	}
+
+	const int numPolygons = temp_cuttingPolygons.size();
+
+	if (numPolygons == 0) return;
 
 	// ワーク内か判定
-	for (const auto& polygon : m_circlingMultiPolygons)
-		if (!RectF(m_workspaceSize).contains(polygon)) return;
+	for (const auto& polygon : temp_circlingPolygons)
+		if (!RectF(temp_workspaceSize).contains(polygon)) return;
 
 	// 重なり判定
-	for (auto it1 = m_circlingMultiPolygons.begin(); it1 != m_circlingMultiPolygons.end(); ++it1)
-		for (auto it2 = it1 + 1; it2 != m_circlingMultiPolygons.end(); ++it2)
+	for (auto it1 = temp_circlingPolygons.begin(); it1 != temp_circlingPolygons.end(); ++it1)
+		for (auto it2 = it1 + 1; it2 != temp_circlingPolygons.end(); ++it2)
 			if (it1->intersects(*it2)) return;
 
 	{
 		MultiPolygon restrictedPolygons;
-		for (const auto& polygon : m_circlingMultiPolygons)
+		for (const auto& polygon : temp_circlingPolygons)
 			restrictedPolygons.emplace_back(polygon.calculateBuffer(-0.1));	// それ自体が当たらないようにする
 
 		// 始点Node作成
@@ -34,14 +60,14 @@ void RouteGenerator::update()
 		}
 
 		// PolygonのNode生成
-		for (int polygonIndex = 0; polygonIndex < m_circlingMultiPolygons.size(); ++polygonIndex)
+		for (int polygonIndex = 0; polygonIndex < temp_circlingPolygons.size(); ++polygonIndex)
 		{
-			for (int outerIndex = 0; outerIndex < m_circlingMultiPolygons[polygonIndex].outer().size(); ++outerIndex)
+			for (int outerIndex = 0; outerIndex < temp_circlingPolygons[polygonIndex].outer().size(); ++outerIndex)
 			{
 				const auto& node = m_nodes.emplace_back(MakeShared<Node>());
 				node->m_shapeIndex = polygonIndex;
 				node->m_outerIndex = outerIndex;
-				node->m_position = m_circlingMultiPolygons[polygonIndex].outer()[outerIndex];
+				node->m_position = m_circlingPolygons[polygonIndex].outer()[outerIndex];
 			}
 		}
 
@@ -72,7 +98,7 @@ void RouteGenerator::update()
 		// ビルド
 		std::shared_ptr<Node> start = m_nodes.front();
 		std::shared_ptr<Node> end;
-		for (int polygonIndex = 0; polygonIndex < m_circlingMultiPolygons.size(); ++polygonIndex)
+		for (int polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
 		{
 			end = nullptr;
 
@@ -84,23 +110,23 @@ void RouteGenerator::update()
 
 			if (!end) return;
 
-			m_route.append(getRoute(start, end));
+			temp_route.append(getRoute(start, end));
 
 			int minOuterIndex = 0;
-			for (int outerIndex = 0; outerIndex < m_cuttingMultiPolygons[polygonIndex].outer().size(); ++outerIndex)
+			for (int outerIndex = 0; outerIndex < temp_cuttingPolygons[polygonIndex].outer().size(); ++outerIndex)
 			{
-				if (end->m_position.distanceFrom(m_cuttingMultiPolygons[polygonIndex].outer()[outerIndex]) <
-					end->m_position.distanceFrom(m_cuttingMultiPolygons[polygonIndex].outer()[minOuterIndex]))
+				if (end->m_position.distanceFrom(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]) <
+					end->m_position.distanceFrom(temp_cuttingPolygons[polygonIndex].outer()[minOuterIndex]))
 				{
 					minOuterIndex = outerIndex;
 				}
 			}
 
-			for (int outerIndex = minOuterIndex; outerIndex < m_cuttingMultiPolygons[polygonIndex].outer().size(); ++outerIndex)
-				m_route.emplace_back(m_cuttingMultiPolygons[polygonIndex].outer()[outerIndex]);
+			for (int outerIndex = minOuterIndex; outerIndex < temp_cuttingPolygons[polygonIndex].outer().size(); ++outerIndex)
+				temp_route.emplace_back(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]);
 
 			for (int outerIndex = 0; outerIndex <= minOuterIndex; ++outerIndex)
-				m_route.emplace_back(m_cuttingMultiPolygons[polygonIndex].outer()[outerIndex]);
+				temp_route.emplace_back(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]);
 
 			start = end;
 		}
@@ -108,10 +134,16 @@ void RouteGenerator::update()
 		start = end;
 		end = m_nodes.front();
 		buildCostMap(start);
-		m_route.append(getRoute(start, end));
+		temp_route.append(getRoute(start, end));
 	}
 
-	m_isValid = true;
+	// Copy
+	{
+		std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+
+		m_route = temp_route;
+		m_isValid = true;
+	}
 }
 
 Array<Command> RouteGenerator::getCommands() const

@@ -5,41 +5,31 @@ void MainViewer::Workspace::updateShapes()
 {
 	auto& routeGenerator = getParentViewer<MainViewer>()->m_routeGenerator;
 
-	routeGenerator.m_cuttingMultiPolygons.clear();
-	routeGenerator.m_circlingMultiPolygons.clear();
-
 	// Shapes
 	{
 		Array<ConcurrentTask<void>> tasks;
 
 		for (auto& shape : m_shapes)
-		{
-			// 更新するかどうか
-			{
-				std::lock_guard<std::mutex> lock(g_shapeMutex);
-
-				if (!shape.m_isNeedUpdate) continue;
-
-				shape.m_isInUpdate = true;
-				shape.m_isNeedUpdate = false;
-			}
-
-			tasks.emplace_back(CreateConcurrentTask([&shape, &routeGenerator]() { shape.update(routeGenerator); }));
-		}
+			if (shape.isNeedUpdate())  tasks.emplace_back(CreateConcurrentTask([&shape, &routeGenerator]() { shape.update(routeGenerator); }));
 
 		for (const auto& task : tasks)
 			while (!task.is_done()) std::this_thread::sleep_for(std::chrono::microseconds(1));
 
-		// lock解除
+		// routeGeneratorにデータ移動
 		{
-			std::lock_guard<std::mutex> lock(g_shapeMutex);
+			MultiPolygon cuttingPolygons;
+			MultiPolygon circlingPolygons;
 
 			for (auto& shape : m_shapes)
 			{
-				shape.m_isInUpdate = false;
+				cuttingPolygons.emplace_back(shape.getCuttingPolygon());
+				circlingPolygons.emplace_back(shape.getCirclingPolygon());
+			}
 
-				routeGenerator.m_circlingMultiPolygons.emplace_back(shape.m_circlingPolygon);
-				routeGenerator.m_cuttingMultiPolygons.emplace_back(shape.m_cuttingPolygon);
+			// コピー
+			{
+				routeGenerator.setCuttingPolygons(cuttingPolygons);
+				routeGenerator.setCirclingPolygons(circlingPolygons);
 			}
 		}
 	}
@@ -49,21 +39,15 @@ void MainViewer::Workspace::updateShapes()
 
 void MainViewer::Workspace::addPolygon(const Polygon& polygon)
 {
-	auto& shape = m_shapes.emplace_back();
-	shape.m_polygon = polygon;
-	shape.update(getParentViewer<MainViewer>()->m_routeGenerator);
+	m_shapes.emplace_back(polygon);
 
 	m_needToUpdate = true;
 }
 
 void MainViewer::Workspace::onMarginChanged()
 {
-	{
-		std::lock_guard<std::mutex> lock(g_shapeMutex);
-
-		for (auto& shape : m_shapes)
-			shape.m_isNeedUpdate = true;
-	}
+	for (auto& shape : m_shapes)
+		shape.setNeedUpdate();
 
 	m_needToUpdate = true;
 }
@@ -76,9 +60,6 @@ void MainViewer::Workspace::init()
 
 void MainViewer::Workspace::update()
 {
-	std::lock_guard<std::mutex> lock1(g_routeGeneratorMutex);
-	std::lock_guard<std::mutex> lock2(g_shapeMutex);
-
 	const auto& routeGenerator = getParentViewer<MainViewer>()->m_routeGenerator;
 
 	RectF(getViewerSize()).stretched(-5).draw(ColorF(0.9)).drawFrame(2.0, 0.0, Palette::Black);
@@ -96,54 +77,32 @@ void MainViewer::Workspace::update()
 		m_updater = CreateConcurrentTask(&MainViewer::Workspace::updateShapes, this);
 	}
 
-	RectF(routeGenerator.m_workspaceSize).drawFrame(2.0 / s, Palette::Darkkhaki);
+	RectF(routeGenerator.getWorkspaceSize()).drawFrame(2.0 / s, Palette::Darkkhaki);
 
 	for (int i = m_shapes.size() - 1; i >= 0; --i)
-		if (m_shapes[i].m_polygon.boundingRect().stretched(routeGenerator.m_circlingMargin + routeGenerator.m_cuttingMargin).leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
+		if (m_shapes[i].getPolygon().boundingRect().stretched(routeGenerator.getCirclingMargin() + routeGenerator.getCuttingMargin()).leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
+
+	for (auto it = m_shapes.begin(); it != m_shapes.end(); ++it)
+		if (it->getPolygon().boundingRect().stretched(routeGenerator.getCirclingMargin() + routeGenerator.getCuttingMargin()).rightClicked()) { m_shapes.erase(it); m_needToUpdate = true; return; }
 
 	for (auto& shape : m_shapes)
 	{
-		shape.m_polygon.draw(Palette::Green);
-		shape.m_polygon.boundingRect().stretched(routeGenerator.m_circlingMargin + routeGenerator.m_cuttingMargin)
-			.draw(ColorF(Palette::Blue, 0.1))
-			.drawFrame(1.0 / s, Palette::Blue);
-
 		if (MouseL.up()) shape.m_isGrabbed = false;
 		if (shape.m_isGrabbed)
 		{
 			m_needToUpdate = true;
 
-			shape.m_polygon.moveBy(Cursor::DeltaF());
-			shape.m_isNeedUpdate = true;
+			shape.MoveBy(Cursor::DeltaF());
 		}
 	}
 
 	for (auto& shape : m_shapes)
-	{
-		if (shape.m_isInUpdate) continue;
-
-		shape.m_circlingPolygon.draw(ColorF(Palette::Blue, 0.25));
-
-		const auto& outer = shape.m_circlingPolygon.outer();
-		for (int i = 0; i < outer.size() - 1; ++i)
-			Line(outer[i], outer[i + 1]).draw(2.0 / s, Palette::Blue);
-	}
-
-	for (auto& shape : m_shapes)
-	{
-		if (shape.m_isInUpdate) continue;
-
-		const auto& outer = shape.m_cuttingPolygon.outer();
-		for (int i = 0; i < outer.size() - 1; ++i)
-			Line(outer[i], outer[i + 1]).draw(2.0 / s, ColorF(Palette::Red, 0.25));
-	}
+		shape.draw(routeGenerator, s);
 
 	if (!m_inUpdate)
 	{
 		if (!routeGenerator.getRoute().isEmpty())
 			for (int i = 0; i < routeGenerator.getRoute().size() - 1; ++i)
 				Line(routeGenerator.getRoute()[i], routeGenerator.getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
-
-		if (KeyEnter.down()) getParentViewer<MainViewer>()->m_communicator.addCommands(getParentViewer<MainViewer>()->m_routeGenerator.getCommands());
 	}
 }

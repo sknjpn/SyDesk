@@ -43,19 +43,15 @@ void MainViewer::update()
 	{
 		const Image image(m_reservedItems.front().path);
 
-		if(image) addChildViewer<ImageDialog>(m_reservedItems.front(),image);
-	
+		if (image) addChildViewer<ImageDialog>(m_reservedItems.front(), image);
+
 		m_reservedItems.pop_front();
 	}
 
-	try
-	{
-		m_communicator.update();
-	}
-	catch (...)
-	{
-		System::Exit();
-	}
+	m_communicator.update();
+
+	if (!m_communicator.isConnected() && !hasChildViewer<SerialSelector>())
+		addChildViewer<SerialSelector>();
 }
 
 void MainViewer::setPolygon(const Polygon& polygon)
