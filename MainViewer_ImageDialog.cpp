@@ -391,7 +391,7 @@ MainViewer::ImageDialog::ImageDialog(const DroppedFilePath& droppedFilePath, con
 
 void MainViewer::ImageDialog::onLoad()
 {
-	const auto outers = getOutlines(m_image, [](const Color& color) { return color == Palette::Blue; });// .grayscale() < 0.4;});
+	const auto outers = getOutlines(m_image, [](const Color& color) { return color.grayscale() < 0.4;});
 
 	for (const auto& outer : outers)
 	{
