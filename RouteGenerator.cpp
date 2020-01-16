@@ -151,7 +151,7 @@ Array<Command> RouteGenerator::getCommands() const
 	Array<Vec2>	route;
 	route.emplace_back(Vec2::Zero());
 	route.emplace_back(Vec2::Zero());
-	double minLength = 0.25;
+	double minLength = 0.02;
 	for (const auto& p : m_route)
 		if (route.back().distanceFrom(p) > minLength) route.emplace_back(p);
 

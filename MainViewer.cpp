@@ -17,8 +17,18 @@ void MainViewer::init()
 	setBackgroundColor(Palette::Gray);
 }
 
+Stopwatch heatSW(true);
+
 void MainViewer::update()
 {
+	if (heatSW.s() > 1)
+	{
+		heatSW.restart();
+
+		if (m_communicator.getSerial().isOpened())
+			m_communicator.addCommandAtFront(Command('H', short(getChildViewer<CutSetting>()->m_wireTemperature), short(0), short(0), short(0)));
+	}
+
 	setViewerSize(Scene::Size());
 
 	// UIの配置調整
