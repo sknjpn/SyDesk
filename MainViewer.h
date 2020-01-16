@@ -143,10 +143,12 @@ class MainViewer : public EasyViewer
 		void	onReconnect();
 		void	onOriginAdjust();
 		void	onStart();
+		void	onInterruption();
 
 		bool	canReconnect();
 		bool	canOriginAdjust();
 		bool	canStart();
+		bool	canInterruption();
 	};
 
 	class Workspace : public EasyViewer

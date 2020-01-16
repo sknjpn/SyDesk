@@ -24,7 +24,11 @@ public:
 
 	const Serial& getSerial() const { return m_serial; }
 
+	const Array<Command>& getCommands() const { return m_commands; }
+
 	bool	isConnected() { return m_isConnected; }
+
+	void	clearCommands() { m_commands.clear(); }
 
 	void	update();
 };

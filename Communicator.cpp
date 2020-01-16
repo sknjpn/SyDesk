@@ -42,8 +42,10 @@ bool Communicator::connect(String portname)
 {
 	if (m_serial.open(portname, 115200))
 	{
-		std::string text = "!!!!!!!!!!";
-		m_serial.write(text.c_str(), text.size());
+		//std::string text = "!!!!!!!!!!";
+		//m_serial.write(text.c_str(), text.size());
+		
+		addCommand('C', 0, 0, 0, 0);
 		
 		m_isConnected = true;
 
