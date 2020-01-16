@@ -423,6 +423,8 @@ void MainViewer::ImageDialog::init()
 	INIData ini(U"config.ini");
 	addChildViewer<GUITextBox>(Format(ini.get<int>(U"ImageDialog", U"PPI")))
 		->setViewerRectInLocal(320, 5, 90, 30);
+
+	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 }
 
 void MainViewer::ImageDialog::update()
