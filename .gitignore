@@ -6,3 +6,7 @@ Intermediate/
 *.exe
 AS_DEBUG/
 App/config.ini
+.DS_Store
+empty.app/
+SyDesk.app/
+config.ini

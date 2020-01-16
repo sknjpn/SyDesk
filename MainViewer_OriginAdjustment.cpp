@@ -9,13 +9,23 @@ void MainViewer::OriginAdjustment::init()
 	addChildViewer<GUIButton>(U"完了", [this]() { destroy(); })
 		->setViewerRectInLocal(20, 240, 200, 40);
 
-	addChildViewer<GUIText>(U"Tiny Fabricaのワークテーブル(発泡スチロールを載せる台)を原点(カットを開始する点)に移動してください。\n全体をカットする場合、電熱線がワークテーブルの右上にあたるようにしてください\n左側のボタンを押すか、キーボードの矢印キーを押すことで動かすことができます。\n移動出来たら、「完了」ボタンをクリックするかEnterキーを押してください！\nこの操作は後からやり直すことが出来ます。", Font(12), GUIText::Mode::DrawInBox)
-		->setViewerRectInLocal(240 + 10, 200 + 20, 400 - 20, 120);
+	addChildViewer<GUIText>(U"Tiny Fabricaのワークテーブル(発泡スチロールを載せる台)を原点(カットを開始する点)にボタンをおして移動してください。\n全体をカットする場合、電熱線がワークテーブルの右上にあたるようにしてください\n左側のボタンを押すか、キーボードの矢印キーを押すことで動かすことができます。\n移動出来たら、「完了」ボタンをクリックするかEnterキーを押してください！\nこの操作は後からやり直すことが出来ます。", Font(12), GUIText::Mode::DrawInBox)
+		->setViewerRectInLocal(240 + 10, 200 + 20, 400 - 20, 160);
+
+	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 }
 
 void MainViewer::OriginAdjustment::update()
 {
 	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
+
+	// シリアルが切断されている場合は削除
+	if (!getParentViewer<MainViewer>()->m_communicator.isConnected())
+	{
+		destroy();
+
+		return;
+	}
 
 	RectF(getViewerSize()).draw(ColorF(0.8)).drawFrame(2.0, 0.0, Palette::Black);
 
@@ -27,21 +37,6 @@ void MainViewer::OriginAdjustment::update()
 	移動には、上下左右のボタンを押すか、キーボードの上下左右キーを押してください。
 
 	*/
-
-	// 接続が切れた場合の処理
-	if (!communicator.getSerial().isOpened())
-	{
-		Logger << U"接続が遮断されました";
-
-		// 再接続
-		{
-			destroy();
-
-			getParentViewer()->addChildViewer<SerialSelector>();
-
-			return;
-		}
-	}
 
 	// UIパネル
 	{
@@ -100,10 +95,11 @@ void MainViewer::OriginAdjustment::update()
 		if (m_stateNowUD == StateUD::MoveToU) param += 0b0010;
 		if (m_stateNowRL == StateRL::MoveToR) param += 0b0001;
 		if (m_stateNowUD == StateUD::MoveToD) param += 0b1000;
-		communicator.addCommand('K', param, getParentViewer<MainViewer>()->m_routeGenerator.m_cuttingSpeed, 0, 0);
+		communicator.addCommand('K', param, short(getParentViewer<MainViewer>()->getChildViewer<CutSetting>()->m_cuttingSpeed), 0, 0);
 
 		m_statePreRL = m_stateNowRL;
 		m_statePreUD = m_stateNowUD;
-
 	}
+
+	if (KeyEnter.down()) destroy();
 }

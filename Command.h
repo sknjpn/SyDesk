@@ -4,10 +4,10 @@
 
 class Command
 {
+public:
 	char	m_code;
 	short	m_parameters[4];
 
-public:
 	Command(char code, short param0, short param1, short param2, short param3)
 		: m_code(code)
 	{

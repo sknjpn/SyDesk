@@ -13,6 +13,8 @@ void MainViewer::SerialSelector::init()
 
 	// List
 	addChildViewer<SerialList>();
+
+	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 }
 
 void MainViewer::SerialSelector::update()

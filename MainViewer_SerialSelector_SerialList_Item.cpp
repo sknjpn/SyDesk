@@ -10,11 +10,11 @@ void MainViewer::SerialSelector::SerialList::Item::init()
 		->setViewerRectInLocal(500 + 2, 0 + 2, 80 - 4, 32 - 4);
 
 	addChildViewer<GUIText>(m_serialPort.port, Font(24, Typeface::Black), GUIText::Mode::DrawLeftCenter)
-		->setViewerRectInLocal(10, 0, 160, 32);
+		->setViewerRectInLocal(10, 0, 240, 32);
 
 	addChildViewer<GUIText>(U"", Font(20), GUIText::Mode::DrawLeftCenter)
 		->setName(U"State")
-		->setViewerRectInLocal(180, 0, 300, 32);
+		->setViewerRectInLocal(260, 0, 220, 32);
 }
 
 void MainViewer::SerialSelector::SerialList::Item::update()

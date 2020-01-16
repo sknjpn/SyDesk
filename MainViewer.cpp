@@ -17,8 +17,18 @@ void MainViewer::init()
 	setBackgroundColor(Palette::Gray);
 }
 
+Stopwatch heatSW(true);
+
 void MainViewer::update()
 {
+	if (heatSW.s() > 1)
+	{
+		heatSW.restart();
+
+		if (m_communicator.getSerial().isOpened())
+			m_communicator.addCommandAtFront(Command('H', short(getChildViewer<CutSetting>()->m_wireTemperature), short(0), short(0), short(0)));
+	}
+
 	setViewerSize(Scene::Size());
 
 	// UIの配置調整
@@ -43,19 +53,15 @@ void MainViewer::update()
 	{
 		const Image image(m_reservedItems.front().path);
 
-		if(image) addChildViewer<ImageDialog>(m_reservedItems.front(),image);
-	
+		if (image) addChildViewer<ImageDialog>(m_reservedItems.front(), image);
+
 		m_reservedItems.pop_front();
 	}
 
-	try
-	{
-		m_communicator.update();
-	}
-	catch (...)
-	{
-		System::Exit();
-	}
+	m_communicator.update();
+
+	if (!m_communicator.isConnected() && !hasChildViewer<SerialSelector>())
+		addChildViewer<SerialSelector>();
 }
 
 void MainViewer::setPolygon(const Polygon& polygon)

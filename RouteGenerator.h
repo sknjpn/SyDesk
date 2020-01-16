@@ -6,60 +6,57 @@
 
 class Node;
 
-extern std::mutex g_routeGeneratorMutex;
 
 class RouteGenerator
 {
-	Array<Vec2>		m_route;
-	bool			m_isValid;
+	static std::mutex g_routeGeneratorMutex;
 
-public:
+	Array<Vec2>		m_route;
+
+	// used by only update
+	Array<std::shared_ptr<Node>> m_nodes;
+
 	bool m_isInUpdate = false;
 	bool m_isNeedUpdate = true;
 
-	MultiPolygon	m_cuttingMultiPolygons;
-	MultiPolygon	m_circlingMultiPolygons;
+	MultiPolygon	m_cuttingPolygons;
+	MultiPolygon	m_circlingPolygons;
 	Vec2			m_workspaceSize;
 
 	double	m_cuttingMargin;
-	double	m_cuttingInterval;
 	double	m_circlingMargin;
-	double	m_circlingInterval;
-
 	double	m_cuttingSpeed;
-	double	m_wireTemperature;
 
-	Array<std::shared_ptr<Node>> m_nodes;
+	void	buildCostMap(const std::shared_ptr<Node>& start);
+	Array<Vec2> getRoute(const std::shared_ptr<Node>& start, const std::shared_ptr<Node>& end) const;
+
+	bool	m_isValid = false;
 
 public:
 	RouteGenerator()
 		: m_cuttingMargin(0.0)
 		, m_circlingMargin(0.0)
-		, m_cuttingInterval(0.5)
-		, m_circlingInterval(m_circlingMargin)
 		, m_cuttingSpeed(1500)
-		, m_wireTemperature(25)
 		, m_workspaceSize(182 - 10, 128 - 10)
-		, m_isValid(true)
 	{}
 
 	void	update();
 
+	bool	isValid() const { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); return m_isValid; }
+
+	// Set
+	void	setWorkspaceSize(const Vec2& workspaceSize) { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); m_workspaceSize = workspaceSize; m_isNeedUpdate = true; }
+	void	setCuttingMargin(const double margin) { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); m_cuttingMargin = margin; }
+	void	setCirclingMargin(const double margin) { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); m_circlingMargin = margin; }
+	void	setCuttingSpeed(const double speed) { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); m_cuttingSpeed = speed; }
+	void	setCuttingPolygons(const MultiPolygon& polygons) { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); m_cuttingPolygons = polygons; }
+	void	setCirclingPolygons(const MultiPolygon& polygons) { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); m_circlingPolygons = polygons; }
+
+	// Get
+	Array<Vec2> getRoute() const { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); return m_route; }
+	double	getCuttingMargin() const { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); return m_cuttingMargin; }
+	double	getCirclingMargin() const { std::lock_guard<std::mutex> lock(g_routeGeneratorMutex); return m_circlingMargin; }
+	Vec2	getWorkspaceSize() const { return m_workspaceSize; }
+
 	Array<Command>	getCommands() const;
-
-	bool	isValid() const { return m_isValid; }
-
-	void	setWorkspaceSize(const Vec2& workspaceSize) { m_workspaceSize = workspaceSize; update(); }
-	void	setCuttingMargin(const double margin) { m_cuttingMargin = margin; update(); }
-	void	setCirclingMargin(const double margin) { m_circlingMargin = margin; m_circlingInterval = m_circlingMargin; update(); }
-	//void	setCuttingInterval(const double interval) { m_cuttingInterval = interval; update(); }
-	//void	setCirclingInterval(const double interval) { m_circlingInterval = interval; update(); }
-
-	void	buildCostMap(const std::shared_ptr<Node>& start);
-	Array<Vec2> getRoute(const std::shared_ptr<Node>& start, const std::shared_ptr<Node>& end) const;
-
-	const Array<Vec2>& getRoute() const { return m_route; }
-
-	const MultiPolygon& getCuttingMultiPolygons() const { return m_cuttingMultiPolygons; }
-	const MultiPolygon& getCirclingMultiPolygons() const { return m_circlingMultiPolygons; }
 };

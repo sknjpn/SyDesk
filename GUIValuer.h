@@ -8,6 +8,7 @@ class GUIValuer
 	bool	m_isGrabbed = false;
 	double	m_grabbedPos;
 	Color	m_color;
+	std::function<void(double)>	m_functionOnSelected;
 
 	Circle	getButton() const;
 
@@ -19,6 +20,10 @@ public:
 public:
 	GUIValuer(double value = 0.0)
 		: m_value(value)
+	{}
+	GUIValuer(std::function<void(double)> functionOnSelected, double value = 0.0)
+		: m_functionOnSelected(functionOnSelected)
+		, m_value(value)
 	{}
 
 	void	init() override;
