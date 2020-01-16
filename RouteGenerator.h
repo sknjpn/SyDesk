@@ -27,6 +27,7 @@ class RouteGenerator
 	double	m_cuttingMargin;
 	double	m_circlingMargin;
 	double	m_cuttingSpeed;
+	double	m_cuttingTime;
 
 	void	buildCostMap(const std::shared_ptr<Node>& start);
 	Array<Vec2> getRoute(const std::shared_ptr<Node>& start, const std::shared_ptr<Node>& end) const;
@@ -60,7 +61,8 @@ public:
 	Array<Vec2> getRoute() const { std::lock_guard<std::mutex> lock(g_mutex); return m_route; }
 	double	getCuttingMargin() const { std::lock_guard<std::mutex> lock(g_mutex); return m_cuttingMargin; }
 	double	getCirclingMargin() const { std::lock_guard<std::mutex> lock(g_mutex); return m_circlingMargin; }
-	Vec2	getWorkspaceSize() const { return m_workspaceSize; }
+	Vec2	getWorkspaceSize() const { std::lock_guard<std::mutex> lock(g_mutex); return m_workspaceSize; }
+	double	getCuttingTime() const { std::lock_guard<std::mutex> lock(g_mutex); return m_cuttingTime; }
 
 	Array<Command>	getCommands() const;
 };

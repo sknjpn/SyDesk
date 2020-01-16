@@ -22,6 +22,8 @@ void RouteGenerator::update()
 	Array<Vec2>		temp_route;
 	double	temp_cuttingMargin;
 	double	temp_circlingMargin;
+	double	temp_cuttingTime;
+	double	temp_cuttingSpeed;
 
 	// Copy
 	{
@@ -32,6 +34,8 @@ void RouteGenerator::update()
 		temp_cuttingMargin = m_cuttingMargin;
 		temp_circlingMargin = m_circlingMargin;
 		temp_workspaceSize = m_workspaceSize;
+		temp_cuttingSpeed = m_cuttingSpeed;
+		temp_cuttingTime = m_cuttingTime;
 	}
 
 	const int numPolygons = temp_cuttingPolygons.size();
@@ -138,13 +142,22 @@ void RouteGenerator::update()
 		temp_route.append(getRoute(start, end));
 	}
 
+	// 時間計測
+	{
+		double length = 0.0;
+		for (auto it = temp_route.begin(); it < temp_route.end() - 1; ++it)
+			length += (*it - *(it + 1)).length();
+
+		temp_cuttingTime = length / (10000.0 / temp_cuttingSpeed);
+	}
+
 	// Copy
 	{
 		std::lock_guard<std::mutex> lock(g_mutex);
 
 		m_route = temp_route;
 		m_isValid = true;
-		Window::SetTitle(m_route.size());
+		m_cuttingTime = temp_cuttingTime;
 	}
 }
 

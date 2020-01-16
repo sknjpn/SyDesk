@@ -4,6 +4,7 @@
 void MainViewer::SerialSelector::init()
 {
 	setViewerSize(640, 480);
+	setViewerSize(0, 0);
 
 	addChildViewer<GUIText>(U"Tiny Fabricaの接続されているPortを選択してください", Font(24, Typeface::Bold), GUIText::Mode::DrawLeftCenter)
 		->setViewerRectInLocal(10, 10, 620, 40);

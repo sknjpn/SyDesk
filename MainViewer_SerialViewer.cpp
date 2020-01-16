@@ -12,13 +12,18 @@ void MainViewer::SerialViewer::init()
 		->setName(U"カット中断")
 		->setViewerRectInLocal(10, 60, 230, 30);
 
+	// カット情報
+	addChildViewer<GUIText>(U"", Font(16), GUIText::Mode::DrawInBox)
+		->setName(U"カット情報")
+		->setViewerRectInLocal(10, 110, 230, 30);
+
 	addChildViewer<GUIButton>(U"原点再調整", [this]() { onOriginAdjust(); }, false)
 		->setName(U"原点再調整")
-		->setViewerRectInLocal(10, 110, 230, 30);
+		->setViewerRectInLocal(10, 160, 230, 30);
 
 	addChildViewer<GUIButton>(U"ポート再選択", [this]() { onReconnect(); }, false)
 		->setName(U"ポート再選択")
-		->setViewerRectInLocal(10, 160, 230, 30);
+		->setViewerRectInLocal(10, 210, 230, 30);
 }
 
 void MainViewer::SerialViewer::update()
@@ -27,6 +32,29 @@ void MainViewer::SerialViewer::update()
 
 	getChildViewer<GUIButton>(U"カットスタート")->setIsEnabled(canStart());
 	getChildViewer<GUIButton>(U"カット中断")->setIsEnabled(canInterruption());
+
+	if (RouteGenerator::GetInstance()->isValid())
+	{
+		const double time = RouteGenerator::GetInstance()->getCuttingTime();
+		int min = int(time / 60);
+		int sec = int(time - min * 60);
+
+		getChildViewer<GUIText>(U"カット情報")
+			->m_text = Format(U"カット時間:", min, U"分", sec, U"秒");
+
+		getChildViewer<GUIText>(U"カット情報")
+			->m_color = Palette::Black;
+	}
+	else
+	{
+
+		getChildViewer<GUIText>(U"カット情報")
+			->m_text = U"ルート構築が出来ません";
+		getChildViewer<GUIText>(U"カット情報")
+			->m_color = Palette::Red;
+	}
+
+
 	getChildViewer<GUIButton>(U"原点再調整")->setIsEnabled(canOriginAdjust());
 	getChildViewer<GUIButton>(U"ポート再選択")->setIsEnabled(canReconnect());
 }
