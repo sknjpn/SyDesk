@@ -7,5 +7,6 @@ Intermediate/
 AS_DEBUG/
 App/config.ini
 .DS_Store
-App/empty.app/Contents/_CodeSignature/CodeResources
-App/Applications/SyDesk/App/config.ini
+empty.app/
+SyDesk.app/
+config.ini
