@@ -102,7 +102,9 @@ void MainViewer::Workspace::update()
 	if (!m_inUpdate)
 	{
 		if (!routeGenerator.getRoute().isEmpty())
-			for (int i = 0; i < routeGenerator.getRoute().size() - 1; ++i)
-				Line(routeGenerator.getRoute()[i], routeGenerator.getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
+			for (const auto& p : routeGenerator.getRoute())
+				Circle(p, 1.0 / s).draw(Palette::Red);
+			//for (int i = 0; i < routeGenerator.getRoute().size() - 1; ++i)
+				//Line(routeGenerator.getRoute()[i], routeGenerator.getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
 	}
 }

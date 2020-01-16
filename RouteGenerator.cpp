@@ -143,33 +143,34 @@ void RouteGenerator::update()
 
 		m_route = temp_route;
 		m_isValid = true;
+		Window::SetTitle(m_route.size());
 	}
 }
 
 Array<Command> RouteGenerator::getCommands() const
 {
-	Array<Vec2>	route;
-	route.emplace_back(Vec2::Zero());
-	route.emplace_back(Vec2::Zero());
-	double minLength = 0.02;
+	std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+
+	Array<Vec2> simpled;
+	simpled.emplace_back(m_route.front());
+	double minDistance = 0.2;
 	for (const auto& p : m_route)
-		if (route.back().distanceFrom(p) > minLength) route.emplace_back(p);
+		if (simpled.back().distanceFrom(p) > minDistance)
+			simpled.push_back(p);
 
-	route.emplace_back(Vec2::Zero());
-
-	Window::SetTitle(route.size());
+	if (simpled.back() != Vec2::Zero()) simpled.emplace_back(Vec2::Zero());
 
 	Array<Command> commands;
-	for (int i = 0; i < route.size() - 1; ++i)
+	for (int i = 0; i < simpled.size() - 1; ++i)
 	{
-		const auto& r0 = route[i];
-		const auto& r1 = route[i + 1];
+		const auto& r0 = simpled[i];
+		const auto& r1 = simpled[i + 1];
 		const double length = (r0 - r1).length();
 
 		Point p0 = (r0 * 100.0).asPoint();
 		Point p1 = (r1 * 100.0).asPoint();
-		double sx = Abs(m_cuttingSpeed * length / (r1 - r0).x);
-		double sy = Abs(m_cuttingSpeed * length / (r1 - r0).y);
+		double sx = Min(30000.0, Abs(m_cuttingSpeed * length / (r1 - r0).x));
+		double sy = Min(30000.0, Abs(m_cuttingSpeed * length / (r1 - r0).y));
 
 		commands.emplace_back('P', short(p1.x), short(sx), short(p1.y), short(sy));
 	}
