@@ -153,7 +153,7 @@ Array<Command> RouteGenerator::getCommands() const
 
 	Array<Vec2> simpled;
 	simpled.emplace_back(m_route.front());
-	double minDistance = 0.2;
+	double minDistance = 0.25;
 	for (const auto& p : m_route)
 		if (simpled.back().distanceFrom(p) > minDistance)
 			simpled.push_back(p);

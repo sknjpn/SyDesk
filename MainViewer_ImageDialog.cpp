@@ -397,11 +397,11 @@ void MainViewer::ImageDialog::onLoad()
 	{
 		const Polygon polygon = Polygon(outer)
 			.scaled(25.4 / Parse<double>(getChildViewer<GUITextBox>()->m_textEditState.text))
-			.simplified(0.01);
+			.simplified(0.05);
 
 		Array<Vec2> simpled;
 		simpled.emplace_back(polygon.outer().front());
-		double minDistance = 0.1;
+		double minDistance = 0.25;
 		for (const auto& p : polygon.outer())
 			if (simpled.back().distanceFrom(p) > minDistance)
 				simpled.push_back(p);
