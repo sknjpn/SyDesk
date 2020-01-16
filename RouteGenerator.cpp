@@ -1,13 +1,14 @@
 ﻿#include "RouteGenerator.h"
 #include "Node.h"
 
-std::mutex RouteGenerator::g_routeGeneratorMutex;
+std::unique_ptr<RouteGenerator> RouteGenerator::g_routeGenerator;
+std::mutex RouteGenerator::g_mutex;
 
 void RouteGenerator::update()
 {
 	// 初期化
 	{
-		std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+		std::lock_guard<std::mutex> lock(g_mutex);
 
 		m_nodes.clear();
 		m_route.clear();
@@ -24,7 +25,7 @@ void RouteGenerator::update()
 
 	// Copy
 	{
-		std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+		std::lock_guard<std::mutex> lock(g_mutex);
 
 		temp_cuttingPolygons = m_cuttingPolygons;
 		temp_circlingPolygons = m_circlingPolygons;
@@ -139,7 +140,7 @@ void RouteGenerator::update()
 
 	// Copy
 	{
-		std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+		std::lock_guard<std::mutex> lock(g_mutex);
 
 		m_route = temp_route;
 		m_isValid = true;
@@ -149,7 +150,7 @@ void RouteGenerator::update()
 
 Array<Command> RouteGenerator::getCommands() const
 {
-	std::lock_guard<std::mutex> lock(g_routeGeneratorMutex);
+	std::lock_guard<std::mutex> lock(g_mutex);
 
 	Array<Vec2> simpled;
 	simpled.emplace_back(m_route.front());

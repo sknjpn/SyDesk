@@ -26,7 +26,7 @@ void MainViewer::SerialSelector::update()
 
 void MainViewer::SerialSelector::connect(const String& port)
 {
-	getParentViewer<MainViewer>()->m_communicator.connect(port);
+	Communicator::Connect(port);
 
 	getParentViewer<MainViewer>()->addChildViewer<OriginAdjustment>();
 

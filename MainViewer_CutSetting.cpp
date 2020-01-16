@@ -10,7 +10,7 @@ void MainViewer::CutSetting::onCuttingMarginChanged(double value)
 
 	m_cuttingMargin = value * 5.0;
 
-	getParentViewer<MainViewer>()->m_routeGenerator.setCuttingMargin(m_cuttingMargin);
+	RouteGenerator::GetInstance()->setCuttingMargin(m_cuttingMargin);
 	getParentViewer<MainViewer>()->getChildViewer<Workspace>()->onMarginChanged();
 
 	ini.write<double>(U"CutSetting", U"CuttingMargin", value);
@@ -23,7 +23,7 @@ void MainViewer::CutSetting::onCirclingMarginChanged(double value)
 
 	m_circlingMargin = Math::Lerp(1.0, 10.0, value);
 
-	getParentViewer<MainViewer>()->m_routeGenerator.setCirclingMargin(m_circlingMargin);
+	RouteGenerator::GetInstance()->setCirclingMargin(m_circlingMargin);
 	getParentViewer<MainViewer>()->getChildViewer<Workspace>()->onMarginChanged();
 
 	ini.write<double>(U"CutSetting", U"CirclingMargin", value);
@@ -36,7 +36,7 @@ void MainViewer::CutSetting::onCuttingSpeedChanged(double value)
 
 	m_cuttingSpeed = 10000.0 / Math::Lerp(0.5, 8.0, value);
 
-	getParentViewer<MainViewer>()->m_routeGenerator.setCuttingSpeed(m_cuttingSpeed);
+	RouteGenerator::GetInstance()->setCuttingSpeed(m_cuttingSpeed);
 
 	ini.write<double>(U"CutSetting", U"CuttingSpeed", value);
 	ini.save(U"config.ini");
@@ -51,8 +51,8 @@ void MainViewer::CutSetting::onWireTemperatureChanged(double value)
 	ini.write<double>(U"CutSetting", U"WireTemperature", value);
 	ini.save(U"config.ini");
 
-	if (getParentViewer<MainViewer>()->m_communicator.getSerial().isOpened())
-		getParentViewer<MainViewer>()->m_communicator.addCommandAtFront(Command('H', short(m_wireTemperature), short(0), short(0), short(0)));
+	if (Communicator::GetSerial().isOpened())
+		Communicator::AddCommandAtFront(Command('H', short(m_wireTemperature), short(0), short(0), short(0)));
 }
 
 void MainViewer::CutSetting::init()

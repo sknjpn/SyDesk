@@ -1,10 +1,11 @@
 ﻿#include "Shape.h"
+#include "RouteGenerator.h"
 
-std::mutex Shape::g_shapeMutex;
+std::mutex Shape::g_mutex;
 
 void Shape::MoveBy(const Vec2& delta)
 {
-	std::lock_guard<std::mutex> lock(g_shapeMutex);
+	std::lock_guard<std::mutex> lock(g_mutex);
 
 	m_polygon.moveBy(delta);
 	m_cuttingPolygon.moveBy(delta);
@@ -13,9 +14,11 @@ void Shape::MoveBy(const Vec2& delta)
 	if (m_isInUpdate) m_isNeedUpdate = true;
 }
 
-void Shape::draw(const RouteGenerator& routeGenerator, double s)
+void Shape::draw(double s)
 {
-	std::lock_guard<std::mutex> lock(g_shapeMutex);
+	const auto& routeGenerator = RouteGenerator::GetInstance();
+
+	std::lock_guard<std::mutex> lock(g_mutex);
 
 	const Color polygonColor = m_polygon.mouseOver() ? Palette::Orange : (m_isInUpdate ? Palette::Darkgreen : Palette::Green);
 	const Color circlingColor = m_isInUpdate ? Palette::Darkblue : Palette::Blue;
@@ -24,7 +27,7 @@ void Shape::draw(const RouteGenerator& routeGenerator, double s)
 	// polygon
 	m_polygon.draw(ColorF(polygonColor, 0.8)).drawFrame(1.0, polygonColor);
 
-	m_polygon.boundingRect().stretched(routeGenerator.getCirclingMargin() + routeGenerator.getCuttingMargin())
+	m_polygon.boundingRect().stretched(routeGenerator->getCirclingMargin() + routeGenerator->getCuttingMargin())
 		.draw(ColorF(circlingColor, 0.1))
 		.drawFrame(1.0 / s, Palette::Blue);
 
@@ -41,11 +44,13 @@ void Shape::draw(const RouteGenerator& routeGenerator, double s)
 		m_cuttingPolygon.drawFrame(2.0 / s, ColorF(cuttingColor, 0.25));
 }
 
-void Shape::update(const RouteGenerator& routeGenerator)
+void Shape::update()
 {
+	const auto& routeGenerator = RouteGenerator::GetInstance();
+
 	// 状態の定義
 	{
-		std::lock_guard<std::mutex> lock(g_shapeMutex);
+		std::lock_guard<std::mutex> lock(g_mutex);
 
 		m_isInUpdate = true;
 		m_isNeedUpdate = false;
@@ -60,8 +65,8 @@ void Shape::update(const RouteGenerator& routeGenerator)
 
 	// データコピー
 	{
-		cuttingMarginTemp = routeGenerator.getCuttingMargin();
-		circlingMarginTemp = routeGenerator.getCirclingMargin();
+		cuttingMarginTemp = routeGenerator->getCuttingMargin();
+		circlingMarginTemp = routeGenerator->getCirclingMargin();
 		polygonTemp = getPolygon();
 	}
 
@@ -73,7 +78,7 @@ void Shape::update(const RouteGenerator& routeGenerator)
 
 	// 処理中断
 	{
-		std::lock_guard<std::mutex> lock(g_shapeMutex);
+		std::lock_guard<std::mutex> lock(g_mutex);
 		if (m_isNeedUpdate) { m_isInUpdate = false; return; }
 	}
 
@@ -91,7 +96,7 @@ void Shape::update(const RouteGenerator& routeGenerator)
 
 	// データコピー
 	{
-		std::lock_guard<std::mutex> lock(g_shapeMutex);
+		std::lock_guard<std::mutex> lock(g_mutex);
 		if (m_isNeedUpdate) { m_isInUpdate = false; return; }
 
 		m_cuttingPolygon = cuttingPolygonTemp;

@@ -25,8 +25,8 @@ void MainViewer::update()
 	{
 		heatSW.restart();
 
-		if (m_communicator.getSerial().isOpened())
-			m_communicator.addCommandAtFront(Command('H', short(getChildViewer<CutSetting>()->m_wireTemperature), short(0), short(0), short(0)));
+		if (Communicator::GetSerial().isOpened())
+			Communicator::AddCommandAtFront(Command('H', short(getChildViewer<CutSetting>()->m_wireTemperature), short(0), short(0), short(0)));
 	}
 
 	setViewerSize(Scene::Size());
@@ -58,14 +58,8 @@ void MainViewer::update()
 		m_reservedItems.pop_front();
 	}
 
-	m_communicator.update();
+	Communicator::Update();
 
-	if (!m_communicator.isConnected() && !hasChildViewer<SerialSelector>())
+	if (!Communicator::IsConnected() && !hasChildViewer<SerialSelector>())
 		addChildViewer<SerialSelector>();
-}
-
-void MainViewer::setPolygon(const Polygon& polygon)
-{
-	//m_routeGenerator.addPolygon(Circle(25, 25, 25).asPolygon(500));
-	m_communicator.addCommands(m_routeGenerator.getCommands());
 }

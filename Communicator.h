@@ -14,21 +14,57 @@ class Communicator
 	void	updateRecv();
 	void	updateSend();
 
+	static std::unique_ptr<Communicator> g_instance;
+
 public:
-	bool	connect(String portname);
+	static void MakeInstance() { g_instance = MakeUnique<Communicator>(); }
 
-	void	addCommands(const Array<Command>& commands) { m_commands.append(commands); }
-	void	addCommandAtFront(const Command& command) { m_commands.push_front(command); }
-	void	addCommand(const Command& command) { m_commands.emplace_back(command); }
-	void	addCommand(char code, short param0, short param1, short param2, short param3) { m_commands.emplace_back(code, param0, param1, param2, param3); }
+	static bool	Connect(String portname)
+	{
+		if (g_instance->m_serial.open(portname, 115200))
+		{
+			// シリアルリセット
+			std::string text = "!!!!!!!!!!";
+			g_instance->m_serial.write(text.c_str(), text.size());
 
-	const Serial& getSerial() const { return m_serial; }
+			// PICリセット
+			g_instance->m_commands.emplace_back(Command('C', 0, 0, 0, 0));
+			g_instance->m_isConnected = true;
 
-	const Array<Command>& getCommands() const { return m_commands; }
+			return true;
+		}
 
-	bool	isConnected() { return m_isConnected; }
+		return false;
+	}
 
-	void	clearCommands() { m_commands.clear(); }
+	static void	Update()
+	{
+		try
+		{
+			if (g_instance->m_isConnected)
+			{
+				g_instance->updateRecv();
+				g_instance->updateSend();
+			}
+		}
+		catch (const std::exception & e)
+		{
+			Logger << Unicode::Widen(e.what());
 
-	void	update();
+			g_instance->m_isConnected = false;
+		}
+	}
+
+	// Add Command
+	static void	AddCommand(const Command& command) { g_instance->m_commands.emplace_back(command); }
+	static void	AddCommands(const Array<Command>& commands) { g_instance->m_commands.append(commands); }
+	static void	AddCommandAtFront(const Command& command) { g_instance->m_commands.push_front(command); }
+
+	// Get
+	static const Serial& GetSerial() { return g_instance->m_serial; }
+	static const Array<Command>& GetCommands() { return g_instance->m_commands; }
+
+	static bool	IsConnected() { return g_instance->m_isConnected; }
+
+	static void	ClearCommands() { g_instance->m_commands.clear(); }
 };

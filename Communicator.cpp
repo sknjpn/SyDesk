@@ -1,5 +1,7 @@
 ﻿#include "Communicator.h"
 
+std::unique_ptr<Communicator> Communicator::g_instance;
+
 void Communicator::updateRecv()
 {
 	auto bytes = m_serial.readBytes();
@@ -35,40 +37,5 @@ void Communicator::updateSend()
 		m_commands.pop_front();
 		m_canSend_sub = false;
 		m_canSend = false;
-	}
-}
-
-bool Communicator::connect(String portname)
-{
-	if (m_serial.open(portname, 115200))
-	{
-		//std::string text = "!!!!!!!!!!";
-		//m_serial.write(text.c_str(), text.size());
-		
-		addCommand('C', 0, 0, 0, 0);
-		
-		m_isConnected = true;
-
-		return true;
-	}
-
-	return false;
-}
-
-void Communicator::update()
-{
-	try
-	{
-		if (m_isConnected)
-		{
-			updateRecv();
-			updateSend();
-		}
-	}
-	catch (const std::exception& e)
-	{
-		Logger << Unicode::Widen(e.what());
-
-		m_isConnected = false;
 	}
 }

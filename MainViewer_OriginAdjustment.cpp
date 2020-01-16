@@ -20,7 +20,7 @@ void MainViewer::OriginAdjustment::update()
 	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 
 	// シリアルが切断されている場合は削除
-	if (!getParentViewer<MainViewer>()->m_communicator.isConnected())
+	if (!Communicator::IsConnected())
 	{
 		destroy();
 
@@ -28,8 +28,6 @@ void MainViewer::OriginAdjustment::update()
 	}
 
 	RectF(getViewerSize()).draw(ColorF(0.8)).drawFrame(2.0, 0.0, Palette::Black);
-
-	auto& communicator = getParentViewer<MainViewer>()->m_communicator;
 
 	// 表示
 	/*
@@ -95,7 +93,7 @@ void MainViewer::OriginAdjustment::update()
 		if (m_stateNowUD == StateUD::MoveToU) param += 0b0010;
 		if (m_stateNowRL == StateRL::MoveToR) param += 0b0001;
 		if (m_stateNowUD == StateUD::MoveToD) param += 0b1000;
-		communicator.addCommand('K', param, short(getParentViewer<MainViewer>()->getChildViewer<CutSetting>()->m_cuttingSpeed), 0, 0);
+		Communicator::AddCommand(Command('K', param, short(getParentViewer<MainViewer>()->getChildViewer<CutSetting>()->m_cuttingSpeed), 0, 0));
 
 		m_statePreRL = m_stateNowRL;
 		m_statePreUD = m_stateNowUD;

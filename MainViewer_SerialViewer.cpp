@@ -46,13 +46,13 @@ void MainViewer::SerialViewer::onOriginAdjust()
 
 void MainViewer::SerialViewer::onStart()
 {
-	getParentViewer<MainViewer>()->m_communicator.addCommands(getParentViewer<MainViewer>()->m_routeGenerator.getCommands());
+	Communicator::AddCommands(RouteGenerator::GetInstance()->getCommands());
 }
 
 void MainViewer::SerialViewer::onInterruption()
 {
-	getParentViewer<MainViewer>()->m_communicator.clearCommands();
-	getParentViewer<MainViewer>()->m_communicator.addCommandAtFront(Command('C', 0, 0, 0, 0));
+	Communicator::ClearCommands();
+	Communicator::AddCommandAtFront(Command('C', 0, 0, 0, 0));
 }
 
 bool MainViewer::SerialViewer::canReconnect()
@@ -62,16 +62,16 @@ bool MainViewer::SerialViewer::canReconnect()
 
 bool MainViewer::SerialViewer::canOriginAdjust()
 {
-	return getParentViewer<MainViewer>()->m_communicator.isConnected() && !getParentViewer()->hasChildViewer<OriginAdjustment>();
+	return Communicator::IsConnected() && !getParentViewer()->hasChildViewer<OriginAdjustment>();
 }
 
 bool MainViewer::SerialViewer::canStart()
 {
-	return getParentViewer<MainViewer>()->m_communicator.isConnected() && getParentViewer<MainViewer>()->m_routeGenerator.isValid();
+	return Communicator::IsConnected() && RouteGenerator::GetInstance()->isValid();
 }
 
 bool MainViewer::SerialViewer::canInterruption()
 {
-	return getParentViewer<MainViewer>()->m_communicator.isConnected() && getParentViewer<MainViewer>()->m_communicator.getCommands().size() > 5;
+	return Communicator::IsConnected() && Communicator::GetCommands().size() > 5;
 }
 

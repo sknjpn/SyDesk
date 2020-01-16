@@ -5,6 +5,9 @@
 
 void Main()
 {
+	RouteGenerator::MakeInstance();
+	Communicator::MakeInstance();
+
 	Scene::SetScaleMode(ScaleMode::ResizeFill);
 	Window::SetStyle(WindowStyle::Sizable);
 	Window::Resize(1280, 720);

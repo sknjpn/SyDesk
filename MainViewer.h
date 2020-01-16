@@ -172,11 +172,6 @@ class MainViewer : public EasyViewer
 	Array<DroppedFilePath>	m_reservedItems;
 
 public:
-	Communicator	m_communicator;
-	RouteGenerator	m_routeGenerator;
-
 	void	init() override;
 	void	update() override;
-
-	void	setPolygon(const Polygon& polygon);
 };

@@ -3,14 +3,14 @@
 
 void MainViewer::Workspace::updateShapes()
 {
-	auto& routeGenerator = getParentViewer<MainViewer>()->m_routeGenerator;
+	const auto& routeGenerator = RouteGenerator::GetInstance();
 
 	// Shapes
 	{
 		Array<ConcurrentTask<void>> tasks;
 
 		for (auto& shape : m_shapes)
-			if (shape.isNeedUpdate())  tasks.emplace_back(CreateConcurrentTask([&shape, &routeGenerator]() { shape.update(routeGenerator); }));
+			if (shape.isNeedUpdate())  tasks.emplace_back(CreateConcurrentTask([&shape]() { shape.update(); }));
 
 		for (const auto& task : tasks)
 			while (!task.is_done()) std::this_thread::sleep_for(std::chrono::microseconds(1));
@@ -28,13 +28,13 @@ void MainViewer::Workspace::updateShapes()
 
 			// コピー
 			{
-				routeGenerator.setCuttingPolygons(cuttingPolygons);
-				routeGenerator.setCirclingPolygons(circlingPolygons);
+				routeGenerator->setCuttingPolygons(cuttingPolygons);
+				routeGenerator->setCirclingPolygons(circlingPolygons);
 			}
 		}
 	}
 
-	routeGenerator.update();
+	routeGenerator->update();
 }
 
 void MainViewer::Workspace::addPolygon(const Polygon& polygon)
@@ -60,7 +60,7 @@ void MainViewer::Workspace::init()
 
 void MainViewer::Workspace::update()
 {
-	const auto& routeGenerator = getParentViewer<MainViewer>()->m_routeGenerator;
+	const auto& routeGenerator = RouteGenerator::GetInstance();
 
 	RectF(getViewerSize()).stretched(-5).draw(ColorF(0.9)).drawFrame(2.0, 0.0, Palette::Black);
 
@@ -77,13 +77,13 @@ void MainViewer::Workspace::update()
 		m_updater = CreateConcurrentTask(&MainViewer::Workspace::updateShapes, this);
 	}
 
-	RectF(routeGenerator.getWorkspaceSize()).drawFrame(2.0 / s, Palette::Darkkhaki);
+	RectF(routeGenerator->getWorkspaceSize()).drawFrame(2.0 / s, Palette::Darkkhaki);
 
 	for (int i = m_shapes.size() - 1; i >= 0; --i)
-		if (m_shapes[i].getPolygon().boundingRect().stretched(routeGenerator.getCirclingMargin() + routeGenerator.getCuttingMargin()).leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
+		if (m_shapes[i].getPolygon().boundingRect().stretched(routeGenerator->getCirclingMargin() + routeGenerator->getCuttingMargin()).leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
 
 	for (auto it = m_shapes.begin(); it != m_shapes.end(); ++it)
-		if (it->getPolygon().boundingRect().stretched(routeGenerator.getCirclingMargin() + routeGenerator.getCuttingMargin()).rightClicked()) { m_shapes.erase(it); m_needToUpdate = true; return; }
+		if (it->getPolygon().boundingRect().stretched(routeGenerator->getCirclingMargin() + routeGenerator->getCuttingMargin()).rightClicked()) { m_shapes.erase(it); m_needToUpdate = true; return; }
 
 	for (auto& shape : m_shapes)
 	{
@@ -97,12 +97,12 @@ void MainViewer::Workspace::update()
 	}
 
 	for (auto& shape : m_shapes)
-		shape.draw(routeGenerator, s);
+		shape.draw(s);
 
 	if (!m_inUpdate)
 	{
-		if (!routeGenerator.getRoute().isEmpty())
-			for (int i = 0; i < routeGenerator.getRoute().size() - 1; ++i)
-				Line(routeGenerator.getRoute()[i], routeGenerator.getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
+		if (!routeGenerator->getRoute().isEmpty())
+			for (int i = 0; i < routeGenerator->getRoute().size() - 1; ++i)
+				Line(routeGenerator->getRoute()[i], routeGenerator->getRoute()[i + 1]).draw(2.0 / s, Palette::Red);
 	}
 }
