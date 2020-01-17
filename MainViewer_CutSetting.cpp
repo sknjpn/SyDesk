@@ -58,10 +58,10 @@ void MainViewer::CutSetting::onWireTemperatureChanged(double value)
 void MainViewer::CutSetting::init()
 {
 	const INIData ini(U"config.ini");
-	double cuttingMarginValue = ini.get<double>(U"CutSetting", U"CuttingMargin");
-	double circlingMarginValue = ini.get<double>(U"CutSetting", U"CirclingMargin");
-	double cuttingSpeedValue = ini.get<double>(U"CutSetting", U"CuttingSpeed");
-	double WireTemperatureValue = ini.get<double>(U"CutSetting", U"WireTemperature");
+	double cuttingMarginValue = ini.getOr<double>(U"CutSetting", U"CuttingMargin", 0.1);
+	double circlingMarginValue = ini.getOr<double>(U"CutSetting", U"CirclingMargin", 0.1);
+	double cuttingSpeedValue = ini.getOr<double>(U"CutSetting", U"CuttingSpeed", 1.0);
+	double WireTemperatureValue = ini.getOr<double>(U"CutSetting", U"WireTemperature", 0.3);
 
 	// Cutting Marginの設定
 	addChildViewer<GUIText>(U"切り白", Font(24, Typeface::Bold), GUIText::Mode::DrawLeftCenter)
@@ -85,7 +85,7 @@ void MainViewer::CutSetting::init()
 	addChildViewer<GUIText>(U"カット速度", Font(24, Typeface::Bold), GUIText::Mode::DrawLeftCenter)
 		->setName(U"CuttingSpeedTitle")
 		->setViewerRectInLocal(10, 210, 230, 30);
-	
+
 	addChildViewer<GUIValuer>([this](double value) { onCuttingSpeedChanged(value); }, cuttingSpeedValue)
 		->setViewerRectInLocal(10, 250, 230, 30);
 
@@ -94,7 +94,7 @@ void MainViewer::CutSetting::init()
 	addChildViewer<GUIText>(U"電熱線出力", Font(24, Typeface::Bold), GUIText::Mode::DrawLeftCenter)
 		->setName(U"WireTemperatureTitle")
 		->setViewerRectInLocal(10, 310, 230, 30);
-	
+
 	addChildViewer<GUIValuer>([this](double value) { onWireTemperatureChanged(value); }, WireTemperatureValue)
 		->setViewerRectInLocal(10, 350, 230, 30);
 

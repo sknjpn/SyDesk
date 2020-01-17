@@ -433,7 +433,7 @@ bool MainViewer::ImageDialog::canLoad()
 		return false;
 	}
 
-	if (ppi < 0)
+	if (ppi <= 0)
 	{
 		m_failedText = U"PPIの設定が不適切です。\nPPIは正の数値である必要があります。(例：350)";
 
@@ -472,7 +472,7 @@ void MainViewer::ImageDialog::init()
 		->setViewerRectInLocal(320, 210, 300, 200);
 
 	INIData ini(U"config.ini");
-	addChildViewer<GUITextBox>(Format(ini.get<int>(U"ImageDialog", U"PPI")))
+	addChildViewer<GUITextBox>(Format(ini.getOr<int>(U"ImageDialog", U"PPI", 300)))
 		->setViewerRectInLocal(320, 5, 90, 30);
 
 	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
