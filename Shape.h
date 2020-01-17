@@ -10,6 +10,7 @@ class Shape
 	bool m_isInUpdate = false;
 	bool m_isNeedUpdate = true;
 
+	Array<Vec2> outer;
 	Polygon	m_polygon;
 	Polygon	m_cuttingPolygon;
 	Polygon m_circlingPolygon;
@@ -37,7 +38,7 @@ public:
 	bool isNeedUpdate() const { std::lock_guard<std::mutex> lock(g_mutex); return m_isNeedUpdate; }
 	void setNeedUpdate() { std::lock_guard<std::mutex> lock(g_mutex); m_isNeedUpdate = true; }
 
-	void draw(double s);
+	void draw(double s, bool isMouseOver, double cuttingMargin, double circlingMargin);
 
 	// Update
 	void update();

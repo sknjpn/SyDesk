@@ -1,4 +1,5 @@
 ﻿#include "RouteGenerator.h"
+#include "Communicator.h"
 #include "Node.h"
 
 std::unique_ptr<RouteGenerator> RouteGenerator::g_routeGenerator;
@@ -6,159 +7,123 @@ std::mutex RouteGenerator::g_mutex;
 
 void RouteGenerator::update()
 {
-	// 初期化
-	{
-		std::lock_guard<std::mutex> lock(g_mutex);
+	std::lock_guard<std::mutex> lock(g_mutex);
 
-		m_nodes.clear();
-		m_route.clear();
-		m_isValid = false;
+	if (m_isInUpdate && m_builder.is_done())
+	{
+		m_isInUpdate = false;
 	}
 
-	// 一時領域確保
-	MultiPolygon	temp_cuttingPolygons;
-	MultiPolygon	temp_circlingPolygons;
-	Vec2			temp_workspaceSize;
-	Array<Vec2>		temp_route;
-	double	temp_cuttingMargin;
-	double	temp_circlingMargin;
-	double	temp_cuttingTime;
-	double	temp_cuttingSpeed;
+	if (m_isNeedToUpdate && !m_isInUpdate) m_builder = CreateConcurrentTask(&RouteGenerator::build, this);
+}
 
-	// Copy
+void RouteGenerator::draw(double s)
+{
+	std::lock_guard<std::mutex> lock(g_mutex);
+
+	if (Communicator::GetCommands().size() > 2)
 	{
-		std::lock_guard<std::mutex> lock(g_mutex);
+		static Font font(12);
 
-		temp_cuttingPolygons = m_cuttingPolygons;
-		temp_circlingPolygons = m_circlingPolygons;
-		temp_cuttingMargin = m_cuttingMargin;
-		temp_circlingMargin = m_circlingMargin;
-		temp_workspaceSize = m_workspaceSize;
-		temp_cuttingSpeed = m_cuttingSpeed;
-		temp_cuttingTime = m_cuttingTime;
+		font(U"動作中につき図形移動不可").draw(Vec2::Zero(), Palette::Red);
+
+		for (auto& shape : m_shapes)
+			shape.getPolygon().draw(Palette::Darkgreen);
+
+		return;
 	}
 
-	const int numPolygons = temp_cuttingPolygons.size();
+	RectF(m_workspaceSize).draw(ColorF(0.4)).drawFrame(2.0 / s, ColorF(0.2));
 
-	if (numPolygons == 0) return;
+	for (int i = m_shapes.size() - 1; i >= 0; --i)
+		if (m_shapes[i].getPolygon().boundingRect().stretched(m_circlingMargin + m_cuttingMargin).leftClicked()) { m_shapes[i].m_isGrabbed = true; break; }
 
-	// ワーク内か判定
-	for (const auto& polygon : temp_circlingPolygons)
-		if (!RectF(temp_workspaceSize).contains(polygon)) return;
+	for (auto it = m_shapes.begin(); it != m_shapes.end(); ++it)
+		if (it->getPolygon().boundingRect().stretched(m_circlingMargin + m_cuttingMargin).rightClicked()) { m_shapes.erase(it); m_isNeedToUpdate = true; return; }
 
-	// 重なり判定
-	for (auto it1 = temp_circlingPolygons.begin(); it1 != temp_circlingPolygons.end(); ++it1)
-		for (auto it2 = it1 + 1; it2 != temp_circlingPolygons.end(); ++it2)
-			if (it1->intersects(*it2)) return;
-
+	for (auto& shape : m_shapes)
 	{
-		MultiPolygon restrictedPolygons;
-		for (const auto& polygon : temp_circlingPolygons)
-			restrictedPolygons.emplace_back(polygon.calculateBuffer(-0.1));	// それ自体が当たらないようにする
-
-		// 始点Node作成
+		if (MouseL.up()) shape.m_isGrabbed = false;
+		if (shape.m_isGrabbed && !Cursor::DeltaF().isZero())
 		{
-			const auto& node = m_nodes.emplace_back(MakeShared<Node>());
-			node->m_shapeIndex = -1;
-			node->m_outerIndex = 0;
-			node->m_position = Vec2::Zero();
+			m_isNeedToUpdate = true;
+
+			shape.MoveBy(Cursor::DeltaF());
 		}
+	}
 
-		// PolygonのNode生成
-		for (int polygonIndex = 0; polygonIndex < temp_circlingPolygons.size(); ++polygonIndex)
+	for (auto& shape : m_shapes)
+	{
+		auto bRect = shape.getPolygon().boundingRect().stretched(m_circlingMargin + m_cuttingMargin);
+
+		if (!RectF(m_workspaceSize).contains(bRect))
 		{
-			for (int outerIndex = 0; outerIndex < temp_circlingPolygons[polygonIndex].outer().size(); ++outerIndex)
+			if (bRect.x < 0.0) shape.MoveBy(Vec2(-bRect.x, 0.0));
+			if (bRect.y < 0.0) shape.MoveBy(Vec2(0.0, -bRect.y));
+			if (bRect.x + bRect.w > m_workspaceSize.x) shape.MoveBy(Vec2(m_workspaceSize.x - (bRect.x + bRect.w), 0.0));
+			if (bRect.y + bRect.h > m_workspaceSize.y) shape.MoveBy(Vec2(0.0, m_workspaceSize.y - (bRect.y + bRect.h)));
+			m_isNeedToUpdate = true;
+		}
+	}
+
+	{
+		bool mouseOver = false;
+		for (auto it = m_shapes.rbegin(); it != m_shapes.rend(); ++it)
+		{
+			if (!mouseOver && (*it).getPolygon().boundingRect().stretched(m_circlingMargin + m_cuttingMargin).mouseOver())
 			{
-				const auto& node = m_nodes.emplace_back(MakeShared<Node>());
-				node->m_shapeIndex = polygonIndex;
-				node->m_outerIndex = outerIndex;
-				node->m_position = m_circlingPolygons[polygonIndex].outer()[outerIndex];
+				it->draw(s, true, m_cuttingMargin, m_circlingMargin);
+				mouseOver = true;
 			}
+			else it->draw(s, false, m_cuttingMargin, m_circlingMargin);
 		}
-
-		// 接続形成
-		for (auto it1 = m_nodes.begin(); it1 != m_nodes.end(); ++it1)
-		{
-			for (auto it2 = it1 + 1; it2 != m_nodes.end(); ++it2)
-			{
-				bool isIntersect = false;
-				for (const auto& polygon : restrictedPolygons)
-				{
-					if (Line((*it1)->m_position, (*it2)->m_position).intersects(polygon))
-					{
-						isIntersect = true;
-
-						break;
-					}
-				}
-
-				if (!isIntersect)
-				{
-					(*it1)->m_connectedNodes.emplace_back(*it2);
-					(*it2)->m_connectedNodes.emplace_back(*it1);
-				}
-			}
-		}
-
-		// ビルド
-		std::shared_ptr<Node> start = m_nodes.front();
-		std::shared_ptr<Node> end;
-		for (int polygonIndex = 0; polygonIndex < numPolygons; ++polygonIndex)
-		{
-			end = nullptr;
-
-			buildCostMap(start);
-
-			for (const auto& node : m_nodes)
-				if (node->m_shapeIndex == polygonIndex && node->m_from && (!end || node->cost < end->cost))
-					end = node;
-
-			if (!end) return;
-
-			temp_route.append(getRoute(start, end));
-
-			int minOuterIndex = 0;
-			for (int outerIndex = 0; outerIndex < temp_cuttingPolygons[polygonIndex].outer().size(); ++outerIndex)
-			{
-				if (end->m_position.distanceFrom(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]) <
-					end->m_position.distanceFrom(temp_cuttingPolygons[polygonIndex].outer()[minOuterIndex]))
-				{
-					minOuterIndex = outerIndex;
-				}
-			}
-
-			for (int outerIndex = minOuterIndex; outerIndex < temp_cuttingPolygons[polygonIndex].outer().size(); ++outerIndex)
-				temp_route.emplace_back(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]);
-
-			for (int outerIndex = 0; outerIndex <= minOuterIndex; ++outerIndex)
-				temp_route.emplace_back(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]);
-
-			start = end;
-		}
-
-		start = end;
-		end = m_nodes.front();
-		buildCostMap(start);
-		temp_route.append(getRoute(start, end));
 	}
 
-	// 時間計測
+	if (!m_isInUpdate)
 	{
-		double length = 0.0;
-		for (auto it = temp_route.begin(); it < temp_route.end() - 1; ++it)
-			length += (*it - *(it + 1)).length();
-
-		temp_cuttingTime = length / (10000.0 / temp_cuttingSpeed);
+		if (!m_route.isEmpty())
+			for (int i = 0; i < m_route.size() - 1; ++i)
+				Line(m_route[i], m_route[i + 1]).draw(2.0 / s, Palette::Red);
 	}
 
-	// Copy
+}
+
+void RouteGenerator::addShape(const Array<Vec2>& outer)
+{
+	std::lock_guard<std::mutex> lock(g_mutex);
+
+	m_shapes.emplace_back(Polygon(outer));
+	m_isNeedToUpdate = true;
+}
+
+String RouteGenerator::getFailReason() const
+{
+	std::lock_guard<std::mutex> lock(g_mutex);
+
+	String text;
+
+	switch (m_reasonOfFail)
 	{
-		std::lock_guard<std::mutex> lock(g_mutex);
-
-		m_route = temp_route;
-		m_isValid = true;
-		m_cuttingTime = temp_cuttingTime;
+	case RouteGenerator::ReasonOfFail::None:
+		text = U"問題ありません。\n描画上のバグの可能性があります。";
+		break;
+	case RouteGenerator::ReasonOfFail::NoShapes:
+		text = U"切れる図面がありません\n画像ファイルをドラッグアンドドロップしてロードしてください。";
+		break;
+	case RouteGenerator::ReasonOfFail::OutOfWorkspace:
+		text = U"図面が枠の外側に出ています。\n赤くなっている図形を左クリックで引っ張って枠の内側に入れてください。";
+		break;
+	case RouteGenerator::ReasonOfFail::ShapeIntersect:
+		text = U"図形同士が重なっています。\n赤くなっている図形同士を離してください。";
+		break;
+	case RouteGenerator::ReasonOfFail::CanNotReachNode:
+		text = U"移動可能なルートがありません。\n少し隙間を開けてください。";
+		break;
+	default:
+		break;
 	}
+
+	return text;
 }
 
 Array<Command> RouteGenerator::getCommands() const
@@ -192,6 +157,231 @@ Array<Command> RouteGenerator::getCommands() const
 	commands.emplace_back('K', short(0), short(1500), short(0), short(0));
 
 	return commands;
+}
+
+void RouteGenerator::build()
+{
+	// 初期化
+	{
+		std::lock_guard<std::mutex> lock(g_mutex);
+
+		m_nodes.clear();
+		m_route.clear();
+		m_failedShapeIndex.clear();
+		m_reasonOfFail = ReasonOfFail::None;
+		m_isInUpdate = true;
+		m_isNeedToUpdate = false;
+		m_isValid = false;
+	}
+
+	// 一時領域確保
+	MultiPolygon	temp_cuttingPolygons;
+	MultiPolygon	temp_circlingPolygons;
+	Vec2			temp_workspaceSize;
+	Array<int>		temp_failedShapeIndex;
+	Array<Vec2>		temp_route;
+	double	temp_cuttingMargin;
+	double	temp_circlingMargin;
+	double	temp_cuttingLength;
+
+	// Copy
+	{
+		std::lock_guard<std::mutex> lock(g_mutex);
+
+		temp_cuttingMargin = m_cuttingMargin;
+		temp_circlingMargin = m_circlingMargin;
+		temp_workspaceSize = m_workspaceSize;
+	}
+
+	const int numShapes = m_shapes.size();
+	if (numShapes == 0)
+	{
+		std::lock_guard<std::mutex> lock(g_mutex);
+
+		m_reasonOfFail = ReasonOfFail::NoShapes;
+
+
+		return;
+	}
+
+	// Shapes
+	{
+		Array<ConcurrentTask<void>> tasks;
+
+		for (auto& shape : m_shapes)
+			if (shape.isNeedUpdate())  tasks.emplace_back(CreateConcurrentTask([&shape]() { shape.update(); }));
+
+		for (const auto& task : tasks)
+			while (!task.is_done()) std::this_thread::sleep_for(std::chrono::microseconds(1));
+
+		// routeGeneratorにデータ移動
+		{
+			MultiPolygon cuttingPolygons;
+			MultiPolygon circlingPolygons;
+
+			for (auto& shape : m_shapes)
+			{
+				cuttingPolygons.emplace_back(shape.getCuttingPolygon());
+				circlingPolygons.emplace_back(shape.getCirclingPolygon());
+			}
+
+			// コピー
+			temp_cuttingPolygons = cuttingPolygons;
+			temp_circlingPolygons = circlingPolygons;
+		}
+	}
+
+	// ワーク内か判定
+	{
+		for (auto it = temp_circlingPolygons.begin(); it != temp_circlingPolygons.end(); ++it)
+			if (!RectF(temp_workspaceSize).contains(*it)) temp_failedShapeIndex.emplace_back(int(it - temp_circlingPolygons.begin()));
+
+		if (!temp_failedShapeIndex.isEmpty())
+		{
+			std::lock_guard<std::mutex> lock(g_mutex);
+
+			m_reasonOfFail = ReasonOfFail::OutOfWorkspace;
+			m_failedShapeIndex = temp_failedShapeIndex;
+
+
+			return;
+		}
+	}
+
+	// 重なり判定
+	{
+		for (auto it1 = temp_circlingPolygons.begin(); it1 != temp_circlingPolygons.end(); ++it1)
+			for (auto it2 = it1 + 1; it2 != temp_circlingPolygons.end(); ++it2)
+				if (it1->intersects(*it2)) { temp_failedShapeIndex.emplace_back(int(it1 - temp_circlingPolygons.begin())); temp_failedShapeIndex.emplace_back(int(it2 - temp_circlingPolygons.begin())); }
+
+		temp_failedShapeIndex.unique();
+		if (!temp_failedShapeIndex.isEmpty())
+		{
+			std::lock_guard<std::mutex> lock(g_mutex);
+
+			m_reasonOfFail = ReasonOfFail::ShapeIntersect;
+			m_failedShapeIndex = temp_failedShapeIndex;
+
+
+			return;
+		}
+	}
+
+
+	{
+		MultiPolygon restrictedPolygons;
+		for (const auto& polygon : temp_circlingPolygons)
+			restrictedPolygons.emplace_back(polygon.calculateBuffer(-0.1));	// それ自体が当たらないようにする
+
+		// 始点Node作成
+		{
+			const auto& node = m_nodes.emplace_back(MakeShared<Node>());
+			node->m_shapeIndex = -1;
+			node->m_outerIndex = 0;
+			node->m_position = Vec2::Zero();
+		}
+
+		// PolygonのNode生成
+		for (int polygonIndex = 0; polygonIndex < temp_circlingPolygons.size(); ++polygonIndex)
+		{
+			for (int outerIndex = 0; outerIndex < temp_circlingPolygons[polygonIndex].outer().size(); ++outerIndex)
+			{
+				const auto& node = m_nodes.emplace_back(MakeShared<Node>());
+				node->m_shapeIndex = polygonIndex;
+				node->m_outerIndex = outerIndex;
+				node->m_position = temp_circlingPolygons[polygonIndex].outer()[outerIndex];
+			}
+		}
+
+		// 接続形成
+		for (auto it1 = m_nodes.begin(); it1 != m_nodes.end(); ++it1)
+		{
+			for (auto it2 = it1 + 1; it2 != m_nodes.end(); ++it2)
+			{
+				bool isIntersect = false;
+				for (const auto& polygon : restrictedPolygons)
+				{
+					if (Line((*it1)->m_position, (*it2)->m_position).intersects(polygon))
+					{
+						isIntersect = true;
+
+						break;
+					}
+				}
+
+				if (!isIntersect)
+				{
+					(*it1)->m_connectedNodes.emplace_back(*it2);
+					(*it2)->m_connectedNodes.emplace_back(*it1);
+				}
+			}
+		}
+
+		// ビルド
+		std::shared_ptr<Node> start = m_nodes.front();
+		std::shared_ptr<Node> end;
+		for (int polygonIndex = 0; polygonIndex < numShapes; ++polygonIndex)
+		{
+			end = nullptr;
+
+			buildCostMap(start);
+
+			for (const auto& node : m_nodes)
+				if (node->m_shapeIndex == polygonIndex && node->m_from && (!end || node->cost < end->cost))
+					end = node;
+
+			if (!end)
+			{
+				std::lock_guard<std::mutex> lock(g_mutex);
+
+				m_reasonOfFail = ReasonOfFail::CanNotReachNode;
+				if (polygonIndex == 0) m_failedShapeIndex = { polygonIndex };
+				else m_failedShapeIndex = { polygonIndex, polygonIndex - 1 };
+
+
+				return;
+			}
+
+			temp_route.append(getRoute(start, end));
+
+			int minOuterIndex = 0;
+			for (int outerIndex = 0; outerIndex < temp_cuttingPolygons[polygonIndex].outer().size(); ++outerIndex)
+			{
+				if (end->m_position.distanceFrom(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]) <
+					end->m_position.distanceFrom(temp_cuttingPolygons[polygonIndex].outer()[minOuterIndex]))
+				{
+					minOuterIndex = outerIndex;
+				}
+			}
+
+			for (int outerIndex = minOuterIndex; outerIndex < temp_cuttingPolygons[polygonIndex].outer().size(); ++outerIndex)
+				temp_route.emplace_back(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]);
+
+			for (int outerIndex = 0; outerIndex <= minOuterIndex; ++outerIndex)
+				temp_route.emplace_back(temp_cuttingPolygons[polygonIndex].outer()[outerIndex]);
+
+			start = end;
+		}
+
+		start = end;
+		end = m_nodes.front();
+		buildCostMap(start);
+		temp_route.append(getRoute(start, end));
+	}
+
+	// 時間計測
+	temp_cuttingLength = 0;
+	for (auto it = temp_route.begin(); it < temp_route.end() - 1; ++it)
+		temp_cuttingLength += (*it - *(it + 1)).length();
+
+	// Copy
+	{
+		std::lock_guard<std::mutex> lock(g_mutex);
+
+		m_route = temp_route;
+		m_isValid = true;
+		m_cuttingLength = temp_cuttingLength;
+	}
 }
 
 void RouteGenerator::buildCostMap(const std::shared_ptr<Node>& start)

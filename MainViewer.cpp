@@ -1,4 +1,6 @@
 ﻿#include "MainViewer.h"
+#include "RouteGenerator.h"
+#include "Communicator.h"
 
 // ワークフロー
 // 1, SerialSelector
@@ -58,6 +60,7 @@ void MainViewer::update()
 		m_reservedItems.pop_front();
 	}
 
+	RouteGenerator::GetInstance()->update();
 	Communicator::Update();
 
 	if (!Communicator::IsConnected() && !hasChildViewer<SerialSelector>())

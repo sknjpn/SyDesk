@@ -14,22 +14,25 @@ void Shape::MoveBy(const Vec2& delta)
 	if (m_isInUpdate) m_isNeedUpdate = true;
 }
 
-void Shape::draw(double s)
+void Shape::draw(double s, bool isMouseOver, double cuttingMargin, double circlingMargin)
 {
 	const auto& routeGenerator = RouteGenerator::GetInstance();
 
 	std::lock_guard<std::mutex> lock(g_mutex);
 
-	const Color polygonColor = m_polygon.mouseOver() ? Palette::Orange : (m_isInUpdate ? Palette::Darkgreen : Palette::Green);
+	const Color polygonColor = m_isInUpdate ? Palette::Darkgreen : Palette::Green;
 	const Color circlingColor = m_isInUpdate ? Palette::Darkblue : Palette::Blue;
 	const Color cuttingColor = m_isInUpdate ? Palette::Darkorange : Palette::Orange;
 
 	// polygon
 	m_polygon.draw(ColorF(polygonColor, 0.8)).drawFrame(1.0, polygonColor);
-
-	m_polygon.boundingRect().stretched(routeGenerator->getCirclingMargin() + routeGenerator->getCuttingMargin())
+	
+	m_polygon.boundingRect().stretched(cuttingMargin + circlingMargin)
 		.draw(ColorF(circlingColor, 0.1))
 		.drawFrame(1.0 / s, Palette::Blue);
+
+	if (isMouseOver)
+		m_polygon.boundingRect().stretched(cuttingMargin + circlingMargin).draw(ColorF(1.0, 0.2));
 
 	// circling
 	if (!m_circlingPolygon.isEmpty())

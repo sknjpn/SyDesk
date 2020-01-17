@@ -1,4 +1,5 @@
 ﻿#include "MainViewer.h"
+#include "Communicator.h"
 #include "GUIText.h"
 #include "GUIButton.h"
 

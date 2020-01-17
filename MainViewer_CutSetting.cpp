@@ -1,4 +1,6 @@
 ﻿#include "MainViewer.h"
+#include "Communicator.h"
+#include "RouteGenerator.h"
 #include "GUISlider.h"
 #include "GUIText.h"
 #include "GUIButton.h"
@@ -11,7 +13,6 @@ void MainViewer::CutSetting::onCuttingMarginChanged(double value)
 	m_cuttingMargin = value * 5.0;
 
 	RouteGenerator::GetInstance()->setCuttingMargin(m_cuttingMargin);
-	getParentViewer<MainViewer>()->getChildViewer<Workspace>()->onMarginChanged();
 
 	ini.write<double>(U"CutSetting", U"CuttingMargin", value);
 	ini.save(U"config.ini");
@@ -24,7 +25,6 @@ void MainViewer::CutSetting::onCirclingMarginChanged(double value)
 	m_circlingMargin = Math::Lerp(1.0, 10.0, value);
 
 	RouteGenerator::GetInstance()->setCirclingMargin(m_circlingMargin);
-	getParentViewer<MainViewer>()->getChildViewer<Workspace>()->onMarginChanged();
 
 	ini.write<double>(U"CutSetting", U"CirclingMargin", value);
 	ini.save(U"config.ini");

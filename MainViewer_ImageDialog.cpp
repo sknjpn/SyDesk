@@ -1,4 +1,5 @@
 ﻿#include "MainViewer.h"
+#include "RouteGenerator.h"
 #include "GUIButton.h"
 #include "GUIText.h"
 #include "GUITextBox.h"
@@ -391,7 +392,7 @@ MainViewer::ImageDialog::ImageDialog(const DroppedFilePath& droppedFilePath, con
 
 void MainViewer::ImageDialog::onLoad()
 {
-	const auto outers = getOutlines(m_image, [](const Color& color) { return color.grayscale() < 0.4;});
+	const auto outers = getOutlines(m_image, [](const Color& color) { return color.grayscale() < 0.4; });
 
 	for (const auto& outer : outers)
 	{
@@ -406,7 +407,7 @@ void MainViewer::ImageDialog::onLoad()
 			if (simpled.back().distanceFrom(p) > minDistance)
 				simpled.push_back(p);
 
-		getParentViewer<MainViewer>()->getChildViewer<Workspace>()->addPolygon(Polygon(simpled));
+		RouteGenerator::GetInstance()->addShape(simpled);
 	}
 
 
@@ -417,15 +418,58 @@ void MainViewer::ImageDialog::onLoad()
 	destroy();
 }
 
+bool MainViewer::ImageDialog::canLoad()
+{
+	double ppi = 0;
+	try
+	{
+		ppi = Parse<double>(getChildViewer<GUITextBox>()->m_textEditState.text);
+
+	}
+	catch (...)
+	{
+		m_failedText = U"PPIの設定が不適切です。\nPPIは正の数値である必要があります。(例：350)";
+
+		return false;
+	}
+
+	if (ppi < 0)
+	{
+		m_failedText = U"PPIの設定が不適切です。\nPPIは正の数値である必要があります。(例：350)";
+
+		return false;
+	}
+
+	const double w = m_image.width() / ppi * 25.4;
+	const double h = m_image.height() / ppi * 25.4;
+
+	if (w > RouteGenerator::GetInstance()->getWorkspaceSize().x || h > RouteGenerator::GetInstance()->getWorkspaceSize().y)
+	{
+		m_failedText = U"画像が大きいため、ワークサイズ(172mm x 118mm)に収まらない場合があります。";
+	}
+	else m_failedText = U"カット可能です。";
+
+	return true;
+}
+
 void MainViewer::ImageDialog::init()
 {
 	setViewerSize(640, 480);
 
 	addChildViewer<GUIButton>(U"読み込み", [this]() { onLoad(); })
+		->setName(U"load")
 		->setViewerRectInLocal(20, 420, 80, 30);
 
 	addChildViewer<GUIButton>(U"閉じる", [this]() { destroy(); })
 		->setViewerRectInLocal(120, 420, 80, 30);
+
+	addChildViewer<GUIText>(U"", Font(16, Typeface::Bold), GUIText::Mode::DrawInBox)
+		->setName(U"fail")
+		->setViewerRectInLocal(320, 100, 300, 100);
+
+	addChildViewer<GUIText>(U"ここでは読み込む前に、実際の大きさを設定する必要があります。\n画像データの実際の大きさをPPI(Pixel Per Inch、１インチ当たりのピクセル数です)で指定してください。\nIllustratorの場合はpngでの書き出し時に指定した値を入力してください(例：350)", Font(12), GUIText::Mode::DrawInBox)
+		->setName(U"text")
+		->setViewerRectInLocal(320, 210, 300, 200);
 
 	INIData ini(U"config.ini");
 	addChildViewer<GUITextBox>(Format(ini.get<int>(U"ImageDialog", U"PPI")))
@@ -440,6 +484,10 @@ void MainViewer::ImageDialog::update()
 
 	RectF(getViewerSize()).draw(ColorF(0.8)).drawFrame(2.0, 0.0, Palette::Black);
 
+	getChildViewer<GUIButton>(U"load")->setIsEnabled(canLoad());
+	getChildViewer<GUIText>(U"fail")->m_text = m_failedText;
+	getChildViewer<GUIText>(U"fail")->m_color = canLoad() ? Palette::Green : Palette::Red;
+
 	// preview (240, 240)
 	{
 		const RectF region = RectF(320, 320).stretched(-5).draw(ColorF(0.25));
@@ -451,16 +499,15 @@ void MainViewer::ImageDialog::update()
 	}
 
 	// PPIの選択
+	if (canLoad())
 	{
-		const double ppi = Parse<double>(getChildViewer<GUITextBox>()->m_textEditState.text);
+		double ppi = Parse<double>(getChildViewer<GUITextBox>()->m_textEditState.text);
+
 		const double w = m_image.width() / ppi * 25.4;
 		const double h = m_image.height() / ppi * 25.4;
-		if (ppi > 0)
-		{
-			static Font font(20);
+		static Font font(20);
 
-			font(U"PPI:", ppi).draw(320, 40, Palette::Black);
-			font(w, U"mm x ", h, U"mm").draw(320, 70, Palette::Black);
-		}
+		font(U"PPI:", ppi).draw(320, 40, Palette::Black);
+		font(w, U"mm x ", h, U"mm").draw(320, 70, Palette::Black);
 	}
 }

@@ -3,10 +3,7 @@
 # define SIV3D_CONCURRENT
 # include <Siv3D.hpp> // OpenSiv3D v0.4.2
 
-#include "Shape.h"
 #include "EasyViewer.h"
-#include "Communicator.h"
-#include "RouteGenerator.h"
 
 class MainViewer : public EasyViewer
 {
@@ -42,6 +39,7 @@ class MainViewer : public EasyViewer
 		Texture	m_texture;
 		MultiPolygon	m_multiPolygon;
 		double	m_ppi = 72;
+		String	m_failedText;
 
 		Array<Array<Vec2>> getOutlines(const Grid<bool>& map);
 		Array<Vec2> getOutline(const Grid<bool>& map);
@@ -52,6 +50,7 @@ class MainViewer : public EasyViewer
 		ImageDialog(const DroppedFilePath& droppedFilePath, const Image& image);
 
 		void	onLoad();
+		bool	canLoad();
 
 		void	init() override;
 		void	update() override;
@@ -136,6 +135,8 @@ class MainViewer : public EasyViewer
 
 	class SerialViewer : public EasyViewer
 	{
+		Stopwatch	m_cuttingSW;
+
 	public:
 		void	init() override;
 		void	update() override;
@@ -153,20 +154,9 @@ class MainViewer : public EasyViewer
 
 	class Workspace : public EasyViewer
 	{
-		ConcurrentTask<void> m_updater;
-		Array<Shape> m_shapes;
-		bool	m_needToUpdate = true;
-		bool	m_inUpdate = false;
-
-		void	updateShapes();
-
 	public:
-		void	addPolygon(const Polygon& polygon);
-
-		void	onMarginChanged();
 		void	init() override;
 		void	update() override;
-
 	};
 
 	Array<DroppedFilePath>	m_reservedItems;
