@@ -37,7 +37,6 @@ class MainViewer : public EasyViewer
 		DroppedFilePath m_droppedFilePath;
 		Image	m_image;
 		Texture	m_texture;
-		MultiPolygon	m_multiPolygon;
 		double	m_ppi = 72;
 		String	m_failedText;
 

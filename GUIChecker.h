@@ -13,8 +13,9 @@ class GUIChecker :
 	Color	getTargetColor() const;
 
 public:
-	GUIChecker(bool isEnabled = true)
-		: m_isEnabled(isEnabled)
+	GUIChecker(bool value, bool isEnabled = true)
+		: m_value(value)
+		, m_isEnabled(isEnabled)
 	{}
 
 	void	init() override { m_color = getTargetColor(); }

@@ -2,6 +2,7 @@
 #include "RouteGenerator.h"
 #include "GUIButton.h"
 #include "GUIText.h"
+#include "GUIChecker.h"
 #include "GUITextBox.h"
 
 Array<Vec2> MainViewer::ImageDialog::getOutline(const Image& image, std::function<bool(Color)> judge)
@@ -387,12 +388,20 @@ MainViewer::ImageDialog::ImageDialog(const DroppedFilePath& droppedFilePath, con
 	, m_image(image)
 	, m_texture(image)
 {
-	m_multiPolygon = m_image.grayscaleToPolygons(160, false);
+
 }
 
 void MainViewer::ImageDialog::onLoad()
 {
-	const auto outers = getOutlines(m_image, [](const Color& color) { return color.grayscale() < 0.4; });
+	Array<Array<Vec2>> outers;
+	if (getChildViewer<GUIChecker>()->getValue())
+	{
+		outers = getOutlines(m_image, [](const Color& color) { return color.grayscale() < 0.4; });
+	}
+	else
+	{
+		outers = getOutlines(m_image, [](const Color& color) { return color == Color(0, 0, 255); });
+	}
 
 	for (const auto& outer : outers)
 	{
@@ -413,6 +422,7 @@ void MainViewer::ImageDialog::onLoad()
 
 	INIData ini(U"config.ini");
 	ini.write<double>(U"ImageDialog", U"PPI", Parse<int>(getChildViewer<GUITextBox>()->m_textEditState.text));
+	ini.write<double>(U"ImageDialog", U"OutlineMode", getChildViewer<GUIChecker>()->getValue());
 	ini.save(U"config.ini");
 
 	destroy();
@@ -475,6 +485,12 @@ void MainViewer::ImageDialog::init()
 	addChildViewer<GUITextBox>(Format(ini.getOr<int>(U"ImageDialog", U"PPI", 300)))
 		->setViewerRectInLocal(320, 5, 90, 30);
 
+	addChildViewer<GUIChecker>(ini.getOr<bool>(U"ImageDialog", U"OutlineMode", true))
+		->setViewerRectInLocal(440, 5, 30, 30);
+	addChildViewer<GUIText>(U"", Font(13), GUIText::Mode::DrawLeftCenter)
+		->setViewerRectInLocal(470, 5, 160, 30)
+		->setName(U"outlineModeText");
+
 	setViewerPosInLocal(Scene::Center() - getViewerSize() / 2.0);
 }
 
@@ -495,7 +511,15 @@ void MainViewer::ImageDialog::update()
 		const auto t = Transformer2D(Mat3x2::Translate(-m_image.size() / 2).scaled(s).translated(region.center()));
 
 		m_texture.draw(ColorF(0.5));
-		m_multiPolygon.drawFrame(2.0 * s, Palette::Green);
+	}
+
+	if (getChildViewer<GUIChecker>()->getValue())
+	{
+		getChildViewer<GUIText>(U"outlineModeText")->m_text = U"黒い輪郭線を読み取ります";
+	}
+	else
+	{
+		getChildViewer<GUIText>(U"outlineModeText")->m_text = U"青い輪郭線を読み取ります";
 	}
 
 	// PPIの選択

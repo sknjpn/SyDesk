@@ -37,7 +37,7 @@ void MainViewer::SerialSelector::SerialList::update()
 	{
 		const auto items = getChildViewers<Item>();
 
-		getChildViewer<GUISlider>()->setHeight(items.size() * itemHeight);
+		getChildViewer<GUISlider>()->setHeight(double(items.size()) * itemHeight);
 
 		const auto delta = -getChildViewer<GUISlider>()->getDelta();
 
